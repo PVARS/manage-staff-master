@@ -25,21 +25,12 @@ $isLogin = login($con, $param, $funcId);
 
 if ($param){
     if (isset($param['registFlg']) && $param['registFlg'] == 1){
-        $mes = [];
-        if (empty($username)){
-            $mes[] = 'Vui lòng nhập tên đăng nhập';
-        }
-
-        if (empty($password)){
-            $mes[] = 'Vui lòng nhập mật khẩu';
-        }
+        $mes = validation($param);
 
         if (empty($mes)){
             if ($isLogin){
                 $_SESSION['username'] = $isLogin['username'];
-                $_SESSION['password'] = $isLogin['role'];
                 $_SESSION['role'] = $isLogin['role'];
-
                 header('location: manage-postion.php');
                 exit();
             } else
@@ -153,6 +144,18 @@ echo <<<EOF
 </body>
 </html>
 EOF;
+
+function validation($param){
+    $mes = [];
+    if (empty($param['username'])){
+        $mes[] = 'Vui lòng nhập tên đăng nhập';
+    }
+
+    if (empty($param['password'])){
+        $mes[] = 'Vui lòng nhập mật khẩu';
+    }
+    return $mes;
+}
 
 function login($con, $param, $funcId){
     $cnt = 0;

@@ -5,14 +5,13 @@ require_once ('config.php');
 require_once ('lib.php');
 
 //Initialization
-$func_id = 'manage-postion';
-$maxStr = 200;
+$funcId = 'manage-postion';
 $message = '';
 $messageClass = '';
 $iconClass = '';
 
 session_start();
-var_dump($_SESSION['username']); die();
+
 //Get param
 $param = getParam();
 

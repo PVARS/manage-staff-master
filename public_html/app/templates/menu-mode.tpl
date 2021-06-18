@@ -36,6 +36,14 @@ print <<<EOF
             </li>
             <li class="nav-item nav-link-new">
                 <a href="javascript:void(0)" class="nav-link">
+                    <i class="fas fa-user-check nav-icon"></i>
+                    <p>
+                        Checkin / checkout
+                    </p>
+                </a>
+            </li>
+            <li class="nav-item nav-link-new">
+                <a href="javascript:void(0)" class="nav-link">
                     <i class="fas fa-list-ul nav-icon"></i>
                     <p>
                         Quản lí vị trí
