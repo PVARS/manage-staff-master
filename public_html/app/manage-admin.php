@@ -35,7 +35,7 @@ $numberPhone = $param['numberPhone'] ?? '';
 $email = $param['email'] ?? '';
 $status = $param['status'] ?? '';
 $selected = '';
-if (!empty($status))$selected = 'selected';
+if (!empty($status)) $selected = 'selected';
 
 $htmlDataAdmin = '';
 $htmlDataAdmin = showDataAdmin($con, $param);
@@ -43,10 +43,8 @@ $htmlDataAdmin = showDataAdmin($con, $param);
 if ($param){
     $mes = validation($param);
 
-//    if (empty($mes)) {
-//        showDataAdmin($con, $param);
-//    }
-    lock($con, $param);
+    if (empty($mes)) $htmlDataAdmin;
+    if (isset($param['uid'])) lock($con, $param);
 
     $message = join('<br>', $mes);
     if (strlen($message)) {
@@ -315,7 +313,7 @@ function validation($param){
         $mes[] = 'Tên đăng nhập phải bé hơn 100 ký tự';
     }
 
-    if (!empty($param['numberPhone']) && is_numeric($param['numberPhone'])){
+    if (!empty($param['numberPhone']) && !is_numeric($param['numberPhone'])){
         $mes[] = 'Số điện thoại chỉ được nhập ký tự số';
     }
     return $mes;
@@ -422,6 +420,8 @@ EOF;
                     <td style="text-align: center; width: 5%;">
                         <form action="detail-admin.php" method="POST">
                             <input type="hidden" name="uid" value="{$row['id']}">
+                            <input type="hidden" name="mode" value="update">
+                            <input type="hidden" name="dispFrom" value="manage-admin">
                             <button class="btn btn-primary btn-sm editUser"><i class="fas fa-edit"></i></button>
                         </form>
                     </td>
