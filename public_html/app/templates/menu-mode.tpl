@@ -76,13 +76,13 @@ print <<<EOF
                 </a>
                 <ul class="nav nav-treeview">
                     <li class="nav-item">
-                        <a href="detail-news.php" class="nav-link nav-link-new-detail">
+                        <a href="detail-postion.php" class="nav-link nav-link-new-detail">
                             <i class="fas fa-plus-square nav-icon"></i>
                             <p>Thêm vị trí</p>
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a href="list-news.php" class="nav-link nav-link-new-list">
+                        <a href="manage-postion.php" class="nav-link nav-link-new-list">
                             <i class="fas fa-list-ul nav-icon"></i>
                             <p>Danh sách các vị trí</p>
                         </a>
