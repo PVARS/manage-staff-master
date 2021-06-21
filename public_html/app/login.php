@@ -21,18 +21,22 @@ $param = getParam();
 $username = $param['username'] ?? '';
 $password = $param['password'] ?? '';
 
-$isLogin = login($con, $param, $funcId);
-
 if ($param){
+    $isLogin = login($con, $param, $funcId);
     if (isset($param['registFlg']) && $param['registFlg'] == 1){
         $mes = validation($param);
 
         if (empty($mes)){
             if ($isLogin){
-                $_SESSION['username'] = $isLogin['username'];
-                $_SESSION['role'] = $isLogin['role'];
-                header('location: manage-postion.php');
-                exit();
+                if (password_verify($password, $isLogin['password'])){
+                    $_SESSION['uid'] = $isLogin['id'];
+                    $_SESSION['username'] = $isLogin['username'];
+                    $_SESSION['role'] = $isLogin['role'];
+
+                    header('location: manage-postion.php');
+                    exit();
+                } else
+                    $mes[] = 'Tên đăng nhập hoặc mật khẩu không đúng';
             } else
                 $mes[] = 'Tên đăng nhập hoặc mật khẩu không đúng';
         }
@@ -118,16 +122,9 @@ echo <<<EOF
                         </div>
                     </div>
                     <div class="row">
-                        <div class="col-7">
-                            <div class="icheck-primary">
-                                <input type="checkbox" id="remember" name="remember">
-                                <label for="remember">Lưu đăng nhập</label>
-                            </div>
-                        </div>
-                        <!-- /.col -->
                         <div class="col-5">
                             <input type="hidden" name="registFlg" value="1">
-                            <button type="submit" name="login" class="btn btn-primary btn-block">Đăng nhập</button>
+                            <button type="submit" class="btn btn-primary btn-block">Đăng nhập</button>
                         </div>
                         <!-- /.col -->
                     </div>
@@ -145,35 +142,53 @@ echo <<<EOF
 </html>
 EOF;
 
+/**
+ * Validation data
+ * @param $param
+ * @return array
+ */
 function validation($param){
     $mes = [];
     if (empty($param['username'])){
         $mes[] = 'Vui lòng nhập tên đăng nhập';
+    } elseif (mb_strlen($param['username']) < 2 || mb_strlen($param['username']) > 200){
+        $mes[] = 'Tên đăng nhập phải lớn hơn 6 ký tự và bé hơn 100 ký tự';
     }
 
     if (empty($param['password'])){
         $mes[] = 'Vui lòng nhập mật khẩu';
+    } elseif (mb_strlen($param['password']) < 6 || mb_strlen($param['password']) > 100){
+        $mes[] = 'Mật khẩu phải lớn hơn 6 ký tự và bé hơn 100 ký tự';
     }
+
     return $mes;
 }
 
+/**
+ * check login
+ * @param $con
+ * @param $param
+ * @param $funcId
+ * @return array|string[]|null
+ */
 function login($con, $param, $funcId){
+    $data = [];
     $cnt = 0;
 
     $sql = "";
-    $sql .= "SELECT username                                ";
+    $sql .= "SELECT id                                      ";
+    $sql .= "     , username                                ";
     $sql .= "     , password                                ";
     $sql .= "     , role                                    ";
     $sql .= "  FROM User                                    ";
-    $sql .= " WHERE username = '".$param['username']."'       ";
-    $sql .= "   AND password = '".$param['password']."'       ";
+    $sql .= " WHERE username = '".$param['username']."'     ";
+    $sql .= "    OR email = '".$param['username']."'        ";
 
     $query = mysqli_query($con, $sql);
     if (!$query){
-        systemError('systemError('.$funcId.') SQL Error：',$sql.print_r(TRUE));
-    } else {
+        systemError('systemError('.$funcId.') SQL Error：', $sql.print_r(TRUE));
+    } else
         $cnt = mysqli_num_rows($query);
-    }
 
     if ($cnt != 0){
         $data = mysqli_fetch_assoc($query);
