@@ -74,11 +74,17 @@ function getParam(){
     foreach($a as $k => $v) {
         if (is_array($v)) {
             foreach($v as $k2 => $v2) {
+                if(get_magic_quotes_gpc()) {
+                    $v2 = stripslashes($v2);
+                }
                 $v2 = htmlspecialchars($v2,ENT_QUOTES);
                 $v2 = trimBlank($v2);
                 $param[$k][$k2] = $v2;
             }
         }else{
+            if(get_magic_quotes_gpc()) {
+                $v = stripslashes($v);
+            }
             $v = htmlspecialchars($v,ENT_QUOTES);
             $v = trimBlank($v);
             $param[$k] = $v;

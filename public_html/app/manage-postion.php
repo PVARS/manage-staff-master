@@ -18,6 +18,11 @@ $param = getParam();
 //Connect DB
 $con = openDB();
 
+if (!isset($_SESSION['uid']) || empty($_SESSION)){
+    header('location: login.php');
+    exit();
+}
+
 if ($param){
     $mes = [];
 
@@ -89,7 +94,7 @@ echo <<<EOF
                     <div class="row mb-2">
                         <div class="col-sm-6">
                             <h1 class="m-0">
-                                <i class="fas fa-search"></i>&nbspQuản lí vị trí</h1>
+                                <i class="fas fa-list-ul"></i>&nbspQuản lí vị trí</h1>
                         </div>
                         <!-- /.col -->
                         <div class="col-sm-6">
