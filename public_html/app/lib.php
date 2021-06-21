@@ -129,27 +129,26 @@ function getDelDate($db, $loginId){
  * @param $loginId
  * @return mixed
  */
-function checkStatusUser($db, $loginId){
+function checkStatusUser($db){
     $recCnt = 0;
     $status = [];
-    $pg_param = array();
 
     $sql = "";
-    $sql .= "SELECT status                      ";
-    $sql .= "  FROM users                       ";
-    $sql .= " WHERE loginid = '".$loginId."'    ";
+    $sql .= "SELECT lockFlg                      ";
+    $sql .= "  FROM User                       ";
+    $sql .= " WHERE id = '".$_SESSION['uid']."'    ";
 
-    $query = pg_query_params($db, $sql, $pg_param);
+    $query = mysqli_query($db, $sql);
     if (!$query){
-        systemError('systemError(getDelDate) SQL Error：',$sql.print_r($pg_param, TRUE));
+        systemError('systemError(getDelDate) SQL Error：',$sql.print_r(TRUE));
     } else {
-        $recCnt = pg_num_rows($query);
+        $recCnt = mysqli_num_rows($query);
     }
 
     if ($recCnt != 0){
-        $status = pg_fetch_assoc($query);
+        $status = mysqli_fetch_assoc($query);
     }
-    return $status['status'];
+    return $status;
 }
 
 /**
