@@ -3,7 +3,6 @@
 //Common setting
 require_once ('config.php');
 require_once ('lib.php');
-require_once ('reponsitory/AdminRepository.php');
 
 //Initialization
 $funcId = 'manage-postion';
@@ -24,14 +23,30 @@ if (!isset($_SESSION['uid']) || empty($_SESSION)){
     exit();
 }
 
-$adminRepo = new AdminRepository();
-$dataAdmin = $adminRepo->getAllAdmin();
+$isStatus = checkStatusUser($con);
+if ($isStatus['lockFlg'] == 1){
+    header('Location: error-page.php');
+    exit();
+}
+
+$fullName = $param['fullName'] ?? '';
+$username = $param['username'] ?? '';
+$numberPhone = $param['numberPhone'] ?? '';
+$email = $param['email'] ?? '';
+$status = $param['status'] ?? '';
+$selected = '';
+if (!empty($status))$selected = 'selected';
 
 $htmlDataAdmin = '';
-$htmlDataAdmin = showDataAmin($dataAdmin);
+$htmlDataAdmin = showDataAdmin($con, $param);
 
 if ($param){
-    $mes = [];
+    $mes = validation($param);
+
+//    if (empty($mes)) {
+//        showDataAdmin($con, $param);
+//    }
+    lock($con, $param);
 
     $message = join('<br>', $mes);
     if (strlen($message)) {
@@ -79,6 +94,41 @@ $(function() {
         sweetConfirm(1, message, function(result) {
             if (result){
                 window.location.href = that.href;
+            }
+        });
+    });
+    
+    $(".editUser").on("click", function(e) {
+        e.preventDefault();
+        var message = "Chuyển đến màn hình chỉnh sửa. Bạn chắc chứ?";
+        var form = $(this).closest("form");
+        sweetConfirm(3, message, function(result) {
+            if (result){
+                form.submit();
+            }
+        });
+    });
+    
+    $(".lock").on("click", function(e) {
+        e.preventDefault();
+        var message = "Quản trị viên này sẽ bị khóa. Bạn chắc chứ";
+        var form = $(this).closest("form");
+        sweetConfirm(2, message, function(result) {
+            if (result){
+                $('.mode').val('unlock');
+                form.submit();
+            }
+        });
+    });
+    
+    $(".unlock").on("click", function(e) {
+        e.preventDefault();
+        var message = "Quản trị viên này sẽ mở khóa. Bạn chắc chứ";
+        var form = $(this).closest("form");
+        sweetConfirm(2, message, function(result) {
+            if (result){
+                $('.mode').val('lock');
+                form.submit();
             }
         });
     });
@@ -150,13 +200,13 @@ echo <<<EOF
                                               <!-- text input -->
                                               <div class="form-group">
                                                 <label>Họ tên</label>
-                                                <input type="text" class="form-control" name="fullName" value="" placeholder="Họ tên">
+                                                <input type="text" class="form-control" name="fullName" value="{$fullName}" placeholder="Họ tên">
                                               </div>
                                             </div>
                                             <div class="col-sm-6">
                                               <div class="form-group">
                                                 <label>Tên đăng nhập</label>
-                                                <input type="text" class="form-control" name="username" value="" placeholder="Tên đăng nhập">
+                                                <input type="text" class="form-control" name="username" value="{$username}" placeholder="Tên đăng nhập">
                                               </div>
                                             </div>
                                         </div>
@@ -166,25 +216,22 @@ echo <<<EOF
                                               <!-- text input -->
                                               <div class="form-group">
                                                 <label>Số điện thoại</label>
-                                                <input type="text" class="form-control" name="numberPhone" value="" placeholder="Số điện thoại">
+                                                <input type="text" class="form-control" name="numberPhone" value="{$numberPhone}" placeholder="Số điện thoại">
                                               </div>
                                             </div>
                                             <div class="col-sm-6">
                                               <div class="form-group">
                                                 <label>Email</label>
-                                                <input type="text" class="form-control" name="email" value="" placeholder="Email">
+                                                <input type="text" class="form-control" name="email" value="{$email}" placeholder="Email">
                                               </div>
                                             </div>
                                         </div>
                                         
                                         <label>Trạng thái</label>
                                         <div class="input-group mb-3">
-                                            <select class="custom-select" name="admin">
-                                                <option value="0">-- Vui lòng chọn --</option>
-                                                <option value="2">Tin Chuyển Nhượng</option>
-                                                <option value="3">Phân Tích</option>
-                                                <option value="4">Tản Mạn</option>
-                                                <option value="1">Tin Arsenal</option>
+                                            <select class="custom-select" name="status">
+                                                <option value="0" {$selected}>Đang hoạt động</option>
+                                                <option value="1" {$selected}>Vô hiệu hóa</option>
                                             </select>
                                         </div>
 
@@ -232,7 +279,6 @@ echo <<<EOF
                                         <th style="text-align: center; width: 20%;" class="text-th">Họ tên</th>
                                         <th style="text-align: center; width: 20%;" class="text-th">Tên đăng nhập</th>
                                         <th style="text-align: center; width: 20%;" class="text-th">Số điện thoại</th>
-                                        <th style="text-align: center; width: 20%;" class="text-th">Trạng thái</th>
                                         <th colspan="2" class="text-center" style="width: 15px"></th>
                                     </tr>
                                 </thead>
@@ -259,33 +305,128 @@ echo <<<EOF
 </body>
 </html>
 EOF;
+function validation($param){
+    $mes = [];
+    if (!empty($param['fullName']) && mb_strlen($param['fullName']) > 200){
+        $mes[] = 'Họ tên phải bé hơn 200 ký tự';
+    }
 
-function showDataAmin($dataAdmin){
+    if (!empty($param['username']) && mb_strlen($param['username']) > 100){
+        $mes[] = 'Tên đăng nhập phải bé hơn 100 ký tự';
+    }
+
+    if (!empty($param['numberPhone']) && is_numeric($param['numberPhone'])){
+        $mes[] = 'Số điện thoại chỉ được nhập ký tự số';
+    }
+    return $mes;
+}
+
+/**
+ * @param $con
+ * @param $param
+ * @return string
+ */
+function showDataAdmin($con, $param): string
+{
+    $mysql = [];
+    $recCnt = 0;
+    $cnt = 0;
+
+    if (!empty($param['fullName'])){
+        $mysql[] = "AND fullName LIKE '%".$param['fullName']."%'   ";
+    }
+
+    if (!empty($param['username'])){
+        $mysql[] = "AND username LIKE '%".$param['username']."%'   ";
+    }
+
+    if (!empty($param['numberPhone'])){
+        $mysql[] = "AND phone LIKE '%".$param['numberPhone']."%'   ";
+    }
+
+    if (!empty($param['email'])){
+        $mysql[] = "AND email LIKE '%".$param['email']."%'         ";
+    }
+
+    if (!empty($param['dateFrom'])){
+        $mysql[] = "AND createDate >= ".$param['dateFrom']."       ";
+    }
+
+    if (!empty($param['dateTo'])){
+        $mysql[] = "AND createDate <= ".$param['dateFrom']."       ";
+    }
+
+    if (!empty($param['status'])){
+        $mysql[] = "AND lockFlg = ".$param['status']."             ";
+    }
+
+    $wheresql = join('', $mysql);
+
+    $sql = " SELECT id                         ";
+    $sql .= "     , username                   ";
+    $sql .= "     , fullName                   ";
+    $sql .= "     , role                       ";
+    $sql .= "     , position                   ";
+    $sql .= "     , gender                     ";
+    $sql .= "     , email                      ";
+    $sql .= "     , phone                      ";
+    $sql .= "     , birthday                   ";
+    $sql .= "     , lockFlg                    ";
+    $sql .= "  FROM User                       ";
+    $sql .= "WHERE createDate IS NOT NULL      ";
+    $sql .= $wheresql;
+    $sql .= " ORDER BY lockFlg ASC             ";
+    $sql .= "     , createDate DESC            ";
+
+    $query = mysqli_query($con, $sql);
+    if (!$query){
+        systemError('systemError(getAllAdmin) SQL Error：', $sql.print_r(TRUE));
+    } else
+        $recCnt = mysqli_num_rows($query);
+
     $html = '';
-    if (!empty($dataAdmin)){
-        foreach ($dataAdmin as $k => $value){
-            if ($value['lockFlg'] == 0){
-                $value['lockFlg'] = '<i class="fas fa-check-circle"></i>';
-            } else $value['lockFlg'] = '<i class="fas fa-ban"></i>';
-            $index = $k+1;
+    if ($recCnt != 0){
+        $mode = $param['mode'] ?? '';
+        while ($row = mysqli_fetch_assoc($query)){
+            $cnt++;
+            if ($row['lockFlg'] == 0){
+                $iconStatus = 'fa-lock-open';
+                $classLock = 'unlock';
+                $classBg = 'btn-success';
+            } else {
+                $iconStatus = 'fa-lock';
+                $classLock = 'lock';
+                $classBg = 'btn-danger';
+            }
+
+            if ($_SESSION['uid'] == $row['id']){
+                $htmlBtnLock = <<< EOF
+                    <button class="btn {$classBg} btn-sm" disabled="disabled"><i class="fas {$iconStatus}"></i></button>
+EOF;
+            } else {
+                $htmlBtnLock = <<< EOF
+                    <form action="{$_SERVER['SCRIPT_NAME']}" method="POST">
+                        <input type="hidden" name="uid" value="{$row['id']}">
+                        <input type="hidden" class="mode" name="mode" value="{$mode}">
+                        <button class="btn {$classBg} btn-sm {$classLock}"><i class="fas {$iconStatus}"></i></button>
+                    </form>
+EOF;
+            }
+
             $html.= <<< EOF
                 <tr>
-                    <td style="text-align: center; width: 5%;">{$index}</td>
-                    <td style="width: 20%;">{$value['fullName']}</td>
-                    <td style="width: 20%;">{$value['username']}</td>
-                    <td style="text-align: center; width: 20%;">{$value['phone']}</td>
-                    <td style="text-align: center; width: 20%;">{$value['lockFlg']}</td>
+                    <td style="text-align: center; width: 5%;">{$cnt}</td>
+                    <td style="width: 20%;">{$row['fullName']}</td>
+                    <td style="width: 20%;">{$row['username']}</td>
+                    <td style="text-align: center; width: 20%;">{$row['phone']}</td>
                     <td style="text-align: center; width: 5%;">
                         <form action="detail-admin.php" method="POST">
-                            <input type="hidden" name="uid" value="{$value['id']}">
+                            <input type="hidden" name="uid" value="{$row['id']}">
                             <button class="btn btn-primary btn-sm editUser"><i class="fas fa-edit"></i></button>
                         </form>
                     </td>
                     <td style="text-align: center; width: 5%;">
-                        <form action="{$_SERVER['SCRIPT_NAME']}" method="POST">
-                            <input type="hidden" name="uid" value="{$value['id']}">
-                            <button class="btn btn-danger btn-sm deleteUser"><i class="fas fa-trash"></i></button>
-                        </form>
+                        {$htmlBtnLock}
                     </td>
                 </tr>
 EOF;
@@ -303,6 +444,26 @@ EOF;
 EOF;
     }
     return $html;
+}
+
+/**
+ * @param $con
+ * @param $param
+ */
+function lock($con, $param){
+    if ($param['mode'] == 'lock'){
+        $status = 1;
+    } else $status = 0;
+
+    $sql = " UPDATE User SET                  ";
+    $sql .= "       lockFlg = ".$status."     ";
+    $sql .= " WHERE id = ".$param['uid']."    ";
+
+    $query = mysqli_query($con, $sql);
+    if (!$query){
+        systemError('systemError(getAllAdmin) SQL Error：', $sql.print_r(TRUE));
+    }
+    header('Location: manage-admin.php');
 }
 ?>
 

@@ -24,7 +24,7 @@ $password = $param['password'] ?? '';
 if ($param){
     $isLogin = login($con, $param, $funcId);
     if (isset($param['registFlg']) && $param['registFlg'] == 1){
-        $mes = validation($param);
+        $mes = validation($username, $password);
 
         if (empty($mes)){
             if ($isLogin){
@@ -32,8 +32,7 @@ if ($param){
                     $_SESSION['uid'] = $isLogin['id'];
                     $_SESSION['username'] = $isLogin['username'];
                     $_SESSION['role'] = $isLogin['role'];
-
-                    header('location: manage-postion.php');
+                    header('Location: manage-admin.php');
                     exit();
                 } else
                     $mes[] = 'Tên đăng nhập hoặc mật khẩu không đúng';
@@ -144,23 +143,24 @@ EOF;
 
 /**
  * Validation data
- * @param $param
+ * @param $username
+ * @param $password
  * @return array
  */
-function validation($param){
+function validation($username, $password): array
+{
     $mes = [];
-    if (empty($param['username'])){
+    if (empty($username)){
         $mes[] = 'Vui lòng nhập tên đăng nhập';
-    } elseif (mb_strlen($param['username']) < 2 || mb_strlen($param['username']) > 200){
+    } elseif (mb_strlen($username) < 2 || mb_strlen($username) > 200){
         $mes[] = 'Tên đăng nhập phải lớn hơn 6 ký tự và bé hơn 100 ký tự';
     }
 
-    if (empty($param['password'])){
+    if (empty($password)){
         $mes[] = 'Vui lòng nhập mật khẩu';
-    } elseif (mb_strlen($param['password']) < 6 || mb_strlen($param['password']) > 100){
+    } elseif (mb_strlen($password) < 6 || mb_strlen($password) > 100){
         $mes[] = 'Mật khẩu phải lớn hơn 6 ký tự và bé hơn 100 ký tự';
     }
-
     return $mes;
 }
 
@@ -171,7 +171,8 @@ function validation($param){
  * @param $funcId
  * @return array|string[]|null
  */
-function login($con, $param, $funcId){
+function login($con, $param, $funcId): ?array
+{
     $data = [];
     $cnt = 0;
 
