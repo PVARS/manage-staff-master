@@ -27,7 +27,10 @@ $htmlDataPostion = getAllPosition($con,$param);
 
 if ($param){
     $mes = [];
-    lock($con, $param);
+
+    if(isset($param['pid'])){
+        lock($con, $param);
+    }
     $message = join('<br>', $mes);
     if (strlen($message)) {
         $messageClass = 'alert-danger';
@@ -138,7 +141,7 @@ include ($TEMP_APP_HEADER_PATH);
 
 //Menu
 include ($TEMP_APP_MENU_MOD_PATH);
-
+$search = $param['position'] ?? '';
 //Conntent
 echo <<<EOF
 <div class="content-wrapper">
@@ -179,7 +182,7 @@ echo <<<EOF
                                     <div class="card-body">
                                         <label>Tên vị trí</label>
                                         <div class="input-group mb-3">
-                                            <input type="text" class="form-control" name="position" value="" placeholder="Tên vị trí">
+                                            <input type="text" class="form-control" name="position" value="{$search}" placeholder="Tên vị trí">
                                         </div>
                                     </div>
                                     <!-- /.card-body -->
@@ -240,11 +243,11 @@ function getAllPosition($con,$param){
     $cnt = 0;
     $recCnt = 0;
 
-    // if(!empty($param['position'])){
-    //     $mysql[] = " WHERE Postion.namePosition LIKE '%".$param['position']."%' ";
-    // }
+    if(!empty($param['position'])){
+        $mysql[] = " WHERE Postion.namePosition LIKE '%".$param['position']."%' ";
+    }
 
-    // $wheresql = join('', $mysql);
+    $wheresql = join('', $mysql);
 
     $sql = "";
     $sql .= "SELECT Postion.*";
@@ -252,15 +255,17 @@ function getAllPosition($con,$param){
     $sql .= " FROM Postion";
     $sql .= " INNER JOIN User";
     $sql .= "   ON User.id = Postion.createBy";
+    $sql .= $wheresql;
     $sql .= " ORDER BY Postion.lockFlg DESC";
     $sql .= "     , Postion.createDate DESC";
-
     $query = mysqli_query($con, $sql);
+
 
     if (!$query){
         systemError('systemError(getAllPosition) SQL Error：', $sql.print_r(TRUE));
-    } else
+    } else{
         $recCnt = mysqli_num_rows($query);
+    }
 
     $html = '';
     if($recCnt != 0){
@@ -329,9 +334,10 @@ function lock($con, $param){
 
     $query = mysqli_query($con, $sql);
     if (!$query){
-        systemError('systemError(getAllPosition) SQL Error：', $sql.print_r(TRUE));
+        systemError('systemError(lock) SQL Error：', $sql.print_r(TRUE));
     }
     header('location: manage-postion.php');
+    exit();
 }
 ?>
 

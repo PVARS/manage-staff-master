@@ -37,7 +37,7 @@ include ($TEMP_APP_PRELOADER_PATH);
 echo <<<EOF
 <div class="card card-outline card-primary">
             <div class="card-header text-center">
-                <a href="logout.php" class="h1"><b>Arsenal</b>Quán</a>
+                <a href="logout.php" class="h1"><b>Đăng xuất</b></a>
             </div>
             <div class="card-body">
                 <div class="row">

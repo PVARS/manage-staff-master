@@ -3,7 +3,7 @@
 $navs          = getCssOfMenu('mode') ?? array();
 $navLinkActive = $navs['navLinkActive'] ?? '';
 $navLinkOnlick = $navs['navLinkOnlick'] ?? 'info';
-$name = $_SESSION['username'] ?? '';
+$name = $_SESSION['fullName'] ?? '';
 
 $menuManageAdmin = '';
 if($_SESSION['role'] == 1){
@@ -51,7 +51,7 @@ print <<<EOF
             <i class="nav-icon fas fa-user-circle"></i>
         </div>
         <div class="info">
-            <a href="" class="d-block">Xin chào {$name}</a>
+            <a href="update-profile.php" class="d-block">Xin chào {$name}</a>
         </div>
     </div>
 
@@ -75,7 +75,7 @@ print <<<EOF
             {$menuManageAdmin}
             <li class="nav-item nav-link-new">
                 <a href="javascript:void(0)" class="nav-link">
-                    <i class="fas fa-list-ul nav-icon"></i>
+                    <i class="fas fa-clipboard-list nav-icon"></i>
                     <p>
                         Quản lí vị trí
                         <i class="fas fa-angle-left right"></i>
@@ -106,13 +106,13 @@ print <<<EOF
                 </a>
                 <ul class="nav nav-treeview">
                     <li class="nav-item">
-                        <a href="detail-news.php" class="nav-link nav-link-new-detail">
+                        <a href="detail-member.php" class="nav-link nav-link-new-detail">
                             <i class="fas fa-plus-square nav-icon"></i>
                             <p>Thêm nhân sự</p>
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a href="list-news.php" class="nav-link nav-link-new-list">
+                        <a href="manage-member.php" class="nav-link nav-link-new-list">
                             <i class="fas fa-list-ul nav-icon"></i>
                             <p>Danh sách nhân sự</p>
                         </a>
