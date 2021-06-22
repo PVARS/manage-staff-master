@@ -126,7 +126,6 @@ function getDelDate($db, $loginId){
 /**
  * check status account user
  * @param $db
- * @param $loginId
  * @return mixed
  */
 function checkStatusUser($db){
@@ -151,12 +150,83 @@ function checkStatusUser($db){
     return $status;
 }
 
+function checkDupUsername($db, $username): array
+{
+    $recCnt = 0;
+    $data = [];
+
+    $sql = "";
+    $sql .= "SELECT username                     ";
+    $sql .= "  FROM User                         ";
+    $sql .= " WHERE username= '".$username."'    ";
+
+    $query = mysqli_query($db, $sql);
+    if (!$query){
+        systemError('systemError(checkDupUsername) SQL Error：', $sql . print_r(true));
+    } else {
+        $recCnt = mysqli_num_rows($query);
+    }
+
+    if ($recCnt != 0){
+        $data = mysqli_fetch_assoc($query);
+    }
+    return $data;
+}
+
+function checkDupEmail($db, $email): array
+{
+    $recCnt = 0;
+    $data = [];
+
+    $sql = "";
+    $sql .= "SELECT email                           ";
+    $sql .= "  FROM User                            ";
+    $sql .= " WHERE email= '".$email."'             ";
+
+    $query = mysqli_query($db, $sql);
+    if (!$query){
+        systemError('systemError(checkDupUsername) SQL Error：', $sql . print_r(true));
+    } else {
+        $recCnt = mysqli_num_rows($query);
+    }
+
+    if ($recCnt != 0){
+        $data = mysqli_fetch_assoc($query);
+    }
+    return $data;
+}
+
+function checkDupEmailByUsername($db, $email, $username): array
+{
+    $recCnt = 0;
+    $data = [];
+
+    $sql = "";
+    $sql .= "SELECT email                      ";
+    $sql .= "  FROM User                       ";
+    $sql .= " WHERE email = '".$email."'       ";
+    $sql .= " AND username = '".$username."'   ";
+
+    $query = mysqli_query($db, $sql);
+    if (!$query){
+        systemError('systemError(checkDupUsername) SQL Error：', $sql . print_r(true));
+    } else {
+        $recCnt = mysqli_num_rows($query);
+    }
+
+    if ($recCnt != 0){
+        $data = mysqli_fetch_assoc($query);
+    }
+    return $data;
+}
+
 /**
  * Get Css of Menu
  * @param $role
  * @return array
  */
-function getCssOfMenu($role){
+function getCssOfMenu($role): array
+{
     $navs       = array();
     $requestURI = $_SERVER['REQUEST_URI'];
 

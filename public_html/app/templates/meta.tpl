@@ -33,6 +33,7 @@ print <<< EOF
 <link rel="stylesheet" href="plugins/summernote/summernote-bs4.min.css">
 <!-- Paginate  -->
 <link rel="stylesheet" href="plugins/PaginateMyTable/PaginateMyTable.css">
+<link rel="stylesheet" href="http://code.jquery.com/ui/1.10.3/themes/smoothness/jquery-ui.css" />
 {$cssHTML}
 EOF;
 ?>

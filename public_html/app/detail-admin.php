@@ -9,6 +9,8 @@ $func_id = 'detail_admin';
 $message = '';
 $messageClass = '';
 $iconClass = '';
+$error = 0;
+$readonly = '';
 $hrefBack = 'home.php';
 
 session_start();
@@ -28,34 +30,64 @@ if (isset($param['dispFrom'])){
 
 if ($param){
     if (isset($param['registFlg']) && $param['registFlg'] == 1){
-        if (isset($param['mode']) && $param['mode'] == 'update'){
-            updateAdmin($con, $param);
+        $mes = validation($param);
+        if (empty($mes)){
+            $isDupEmail = checkDupEmail($con, $param['email']);
+            if ($mode == 'new'){
+                if (!empty(checkDupUsername($con, $param['username']))){
+                    $mes[] = 'Tên đăng nhập đã được sử dụng.';
+                }
+
+                if (!empty($isDupEmail)){
+                    $mes[] = 'Email đã được sử dụng.';
+                }
+            }
+
+            if ($mode == 'update'){
+                if (!empty($isDupEmail) && empty(checkDupEmailByUsername($con, $param['email'], $param['username']))){
+                    $mes[] = 'Email đã được sử dụng.';
+                }
+            }
         }
-        insertAdmin($con, $param);
+
+        $message = join('<br>', $mes);
+        if (strlen($message)) {
+            $messageClass = 'alert-danger';
+            $iconClass = 'fas fa-ban';
+            $error = 1;
+        }
+
+        if ($error == 0){
+            if (isset($param['mode']) && $param['mode'] == 'update'){
+                updateAdmin($con, $param);
+            }
+            insertAdmin($con, $param);
+        }
     }
 }
 
-$fullName = $param['fullname'] ?? '';
-$username = $param['username'] ?? '';
-$password = $param['password'] ?? '';
-$email = $param['email'] ?? '';
-$position = $param['position'] ?? '';
-$role = $param['role'] ?? '';
-$gender = $param['gender'] ?? '';
-$phone = $param['phone'] ?? '';
-$birthday = $param['birthday'] ?? '';
-
 if (isset($param['uid']) && !empty($param['uid'])){
+    $readonly = 'readonly';
     $dataAdmin = getAdminById($con, $param);
-    $fullName = $dataAdmin['fullName'] ?? $param['fullname'] ?? '';
-    $username = $dataAdmin['username'] ?? $param['username'] ?? '';
-    $password = $dataAdmin['password'] ?? $param['password'] ?? '';
-    $email = $dataAdmin['email'] ?? $param['email'] ?? '';
-    $position = $dataAdmin['position'] ?? $param['position'] ?? '';
-    $role = $dataAdmin['role'] ?? $param['role'] ?? '';
-    $gender = $dataAdmin['gender'] ?? $param['gender'] ?? '';
-    $phone = $dataAdmin['phone'] ?? $param['phone'] ?? '';
-    $birthday = date('dd/mm/YYYY', $dataAdmin['birthday']) ?? $param['birthday'] ?? '';
+    $fullName = $param['fullname'] ?? $dataAdmin['fullName'];
+    $username = $param['username'] ?? $dataAdmin['username'];
+    $password = $param['password'] ?? $dataAdmin['password'];
+    $email = $param['email'] ?? $dataAdmin['email'];
+    $position = $param['position'] ?? $dataAdmin['position'];
+    $role = $param['role'] ?? $dataAdmin['role'];
+    $gender = $param['gender'] ?? $dataAdmin['gender'];
+    $phone = $param['phone'] ?? $dataAdmin['phone'];
+    $birthday = $param['birthday'] ?? date('d-m-Y', $dataAdmin['birthday']);
+} else {
+    $fullName = $param['fullName'] ?? '';
+    $username = $param['username'] ?? '';
+    $password = $param['password'] ?? '';
+    $email = $param['email'] ?? '';
+    $position = $param['position'] ?? '';
+    $role = $param['role'] ?? '';
+    $gender = $param['gender'] ?? '';
+    $phone = $param['phone'] ?? '';
+    $birthday = $param['birthday'] ?? '';
 }
 
 $genderChecked = [];
@@ -104,7 +136,15 @@ EOF;
 //-----------------------------------------------------------
 $titleHTML = '';
 $cssHTML = '';
-$scriptHTML = '';
+$scriptHTML = <<<EOF
+<script>
+  $( function() {
+    $("#datepicker").datepicker({
+        dateFormat: 'dd-mm-yy'
+    });
+  } );
+  </script>
+EOF;
 
 echo <<<EOF
 <!DOCTYPE html>
@@ -180,9 +220,9 @@ echo <<<EOF
                                     <input type="text" class="form-control" placeholder="Họ tên" name="fullName" value="{$fullName}">
                                 </div>
                                 
-                                <label>Tên đăng nhập</label>
+                                <label>Tên đăng nhập&nbsp<span class="badge badge-danger">Bắt buộc</span></label>
                                 <div class="input-group mb-3">
-                                    <input type="text" class="form-control" value="{$username}" placeholder="Tên đăng nhập" name="username">
+                                    <input type="text" class="form-control" value="{$username}" placeholder="Tên đăng nhập" name="username" {$readonly}>
                                 </div>
                                 
                                 <label>Mật khẩu&nbsp<span class="badge badge-danger">Bắt buộc</span></label>
@@ -229,7 +269,7 @@ echo <<<EOF
                                     <div class="input-group-prepend">
                                         <span class="input-group-text"><i class="fas fa-calendar-alt"></i></span>
                                     </div>
-                                    <input type="date" name="birthday" class="form-control" value="{$birthday}">
+                                    <input type="text" id="datepicker" placeholder="10-05-2021" name="birthday" class="form-control" value="{$birthday}" autocomplete="off">
                                 </div>
                                 
                             </div>
@@ -238,10 +278,6 @@ echo <<<EOF
                                 <input type="hidden" class="mode" name="mode" value="{$mode}">
                                 <input type="hidden" name="registFlg" value="1">
                                 <input type="hidden" name="uid" value="{$uid}">
-                                <a href="" id="deleteUser" class="btn btn-danger">
-                                    <i class="fas fa-trash"></i>
-                                    &nbspXoá
-                                </a>
                                 <button type="submit" class="btn btn-primary float-right" id="saveUser" style="background-color: #17a2b8;">
                                     <i class="fas fa-save"></i>
                                     &nbspLưu
@@ -272,78 +308,77 @@ EOF;
 
 /**
  * Validation data
- * @param $con
- * @param $func_id
  * @param $param
  * @return array
  */
-//function validateData($con, $func_id, $param){
-//    $dupLoginId = getCheckDupLogId($con, $func_id, $param);
-//    $dupEmail   = getCheckDupEmail($con, $func_id, $param);
-//
-//    $mes = [
-//        'chk_required'   => [],
-//        'chk_format'     => [],
-//        'chk_max_length' => []
-//    ];
-//
-//    if (empty($param['fullname'])){
-//        $mes['chk_required'][] = 'Vui lòng nhập họ tên.';
-//    } elseif (mb_strlen($param['fullname']) > 254){
-//        $mes['chk_max_length'][] = 'Họ tên phải bé hơn 254 ký tự.';
-//    }
-//
-//    if ($param['role'] == 0){
-//        $mes['chk_required'][] = 'Vui lòng chọn vai trò cho tài khoản.';
-//    }
-//
-//    if (empty($param['email'])){
-//        $mes['chk_required'][] = 'Vui lòng nhập email.';
-//    } elseif (!preg_match('/^[\w\.\-_]+@[\w\.\-_]+\.\w+$/', $param['email'])){
-//        $mes['chk_format'][] = 'Email không đúng định dạng. Ví dụ: abc@gmail.com';
-//    } elseif (mb_strlen($param['email']) > 254 || mb_strlen($param['email']) < 6){
-//        $mes['chk_max_length'][] = 'Email phải lớn hơn 6 ký tự và bé hơn 254 ký tự.';
-//    }
-//
-//    if (empty($param['loginId'])){
-//        $mes['chk_required'][] = 'Vui lòng nhập tên đăng nhập.';
-//    } elseif (!preg_match('/^[0-9A-Za-z]/', $param['loginId']) || preg_match('/^(?=.*[@#\-_$%^&+=§!\?])/', $param['loginId'])){
-//        $mes['chk_format'][] = 'Tên đăng nhập không được chứa kí tự đặc biệt.';
-//    }
-//    elseif (mb_strlen($param['loginId']) > 254 || mb_strlen($param['loginId']) < 6){
-//        $mes['chk_max_length'][] = 'Tên đăng nhập phải hơn 6 ký tự và bé hơn 254 ký tự.';
-//    }
-//
-//    if ($param['mode'] == 'new'){
-//        if (empty($param['password'])){
-//            $mes['chk_required'][] = 'Vui lòng nhập mật khẩu.';
-//        } elseif (!preg_match('/^(?=.*[0-9A-Za-z])/', $param['password']) || !preg_match('/^(?=.*[@#\-_$%^&+=§!\?])/', $param['password'])){
-//            $mes['chk_format'][] = 'Mật khẩu không đúng định dạng, phải có ít nhất 1 chữ hoặc số và ký tự đặc biệt.';
-//        }
-//        elseif (mb_strlen($param['password']) > 254 || mb_strlen($param['password']) < 6){
-//            $mes['chk_max_length'][] = 'Mật khẩu phải lớn hơn 6 ký tự và bé hơn 254 ký tự.';
-//        }
-//    }
-//
-//    $msg = array_merge(
-//        $mes['chk_required'],
-//        $mes['chk_format'],
-//        $mes['chk_max_length']
-//    );
-//
-//    if ($param['mode'] == 'new'){
-//        if (empty($msg)){
-//            if (!empty($dupEmail)){
-//                $msg[] = 'Email đã được sử dụng';
-//            }
-//
-//            if (!empty($dupLoginId)){
-//                $msg[] = 'Tên đăng nhập đã được sử dụng';
-//            }
-//        }
-//    }
-//    return $msg;
-//}
+function validation($param): array
+{
+    $mes = [
+        'chk_required'   => [],
+        'chk_format'     => [],
+        'chk_max_length' => [],
+    ];
+
+    if (!empty($param['fullName']) && mb_strlen($param['fullName']) > 200){
+        $mes['chk_max_length'][] = 'Họ tên phải bé hơn 100 ký tự.';
+    }
+
+    if (empty($param['username'])){
+        $mes['chk_required'][] = 'Vui lòng nhập tên đăng nhập.';
+    } elseif (mb_strlen($param['username']) > 100){
+        $mes['chk_max_length'][] = 'Tên đăng nhập phải bé hơn 100 ký tự.';
+    }
+
+    if (empty($param['password'])){
+        $mes['chk_required'][] = 'Vui lòng nhập mật khẩu.';
+    } elseif (mb_strlen($param['password']) > 100){
+        $mes['chk_max_length'][] = 'Mật khẩu phải bé hơn 100 ký tự.';
+    }
+
+    if (empty($param['email'])){
+        $mes['chk_required'][] = 'Vui lòng nhập email.';
+    } elseif (!preg_match('/^[\w\.\-_]+@[\w\.\-_]+\.\w+$/', $param['email'])){
+        $mes['chk_format'][] = 'Email không đúng định dạng. Ví dụ: abc@gmail.com';
+    } elseif (mb_strlen($param['email']) > 200 || mb_strlen($param['email']) < 6){
+        $mes['chk_max_length'][] = 'Email phải lớn hơn 6 ký tự và bé hơn 200 ký tự.';
+    }
+
+    if ($param['position'] == 0){
+        $mes['chk_required'][] = 'Vui lòng chọn vị trí.';
+    }
+
+    if ($param['role'] == 0){
+        $mes['chk_required'][] = 'Vui lòng chọn vai trò.';
+    }
+
+    if (!empty($param['phone'])){
+        if (!is_numeric($param['phone'])) {
+            $mes['chk_format'][] = 'Số điện thoại chỉ được nhập ký tự số.';
+        }
+
+        if (mb_strlen($param['phone']) < 10 || mb_strlen($param['phone']) > 15){
+            $mes['chk_max_length'][] = 'Số điện thoại phải lớn hơn 10 và bé hơn 15 ký tự.';
+        }
+    }
+
+    if (!empty($param['birthday'])){
+        if (strtotime($param['birthday']) == false){
+            $mes['chk_format'][] = 'Vui lòng nhập ngày sinh đúng định dạng.';
+        }
+
+        if (strtotime($param['birthday']) > strtotime(currentDate())){
+            $mes['chk_format'][] = 'Ngày sinh không được lớn hơn ngày hiện tại.';
+        }
+    }
+
+
+    $msg = array_merge(
+        $mes['chk_required'],
+        $mes['chk_format'],
+        $mes['chk_max_length'],
+    );
+    return $msg;
+}
 
 function getAdminById($con, $param){
     $data = [];
@@ -378,17 +413,23 @@ function getAdminById($con, $param){
 function updateAdmin($con, $param){
     if (!empty($param['birthday'])){
         $birthday = strtotime($param['birthday']);
-    } else $birthday = 'NULL';
+    } else {
+        $birthday = 'NULL';
+    }
+
+    if (!empty($param['gender'])){
+        $gender = $param['gender'];
+    } else $gender = 'NULL';
 
     $sql = "";
     $sql .= "UPDATE User SET";
-    $sql .= "       username = '".$param['username']."'                                             ";
-    $sql .= "     , fullName = '".$param['fullName']."'                                             ";
+//    $sql .= "       username = '".$param['username']."'                                             ";
+    $sql .= "       fullName = '".$param['fullName']."'                                             ";
     $sql .= "     , password = '".password_hash($param['password'], PASSWORD_DEFAULT)."'       ";
     $sql .= "     , email = '".$param['email']."'                                                   ";
     $sql .= "     , position = ".$param['position']."                                               ";
     $sql .= "     , role = ".$param['role']."                                                       ";
-    $sql .= "     , gender = ".$param['gender']."                                                   ";
+    $sql .= "     , gender = ".$gender."                                                            ";
     $sql .= "     , phone = '".$param['phone']."'                                                   ";
     $sql .= "     , birthday = ".$birthday."                                                        ";
     $sql .= "     , modifyDate = ".strtotime(currentDateTime())."                                   ";
@@ -413,6 +454,10 @@ function insertAdmin($con, $param){
         $birthday = strtotime($param['birthday']);
     } else $birthday = 'NULL';
 
+    if (!empty($param['gender'])){
+        $gender = $param['gender'];
+    } else $gender = 'NULL';
+
     $sql = "";
     $sql .= "INSERT INTO User(                                                                ";
     $sql .= "            username                                                             ";
@@ -433,7 +478,7 @@ function insertAdmin($con, $param){
     $sql .= "       , '".$param['email']."'                                                   ";
     $sql .= "        , ".$param['position']."                                                 ";
     $sql .= "        , ".$param['role']."                                                     ";
-    $sql .= "        , ".$param['gender']."                                                   ";
+    $sql .= "        , ".$gender."                                                            ";
     $sql .= "       , '".$param['phone']."'                                                   ";
     $sql .= "        , ".$birthday."                                                          ";
     $sql .= "        , ".strtotime(currentDateTime())."                                       ";
@@ -458,7 +503,7 @@ function getSelectPosition($con, $position){
     $sql = "";
     $sql .= "SELECT id               ";
     $sql .= "     , namePosition     ";
-    $sql .= "  FROM postion          ";
+    $sql .= "  FROM Postion          ";
     $sql .= "  ORDER BY id ASC       ";
 
     $query = mysqli_query($con, $sql);
@@ -489,7 +534,7 @@ function getSelectRole($con, $role){
     $sql = "";
     $sql .= "SELECT id               ";
     $sql .= "     , name             ";
-    $sql .= "  FROM role             ";
+    $sql .= "  FROM Role             ";
     $sql .= "  ORDER BY id ASC       ";
 
     $query = mysqli_query($con, $sql);
