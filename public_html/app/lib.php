@@ -94,36 +94,6 @@ function getParam(){
 }
 
 /**
- * Get deldate
- * @param $db
- * @param $loginId
- * @param $tableName
- * @return array
- */
-function getDelDate($db, $loginId){
-    $recCnt = 0;
-    $deldate = [];
-    $pg_param = array();
-
-    $sql = "";
-    $sql .= "SELECT deldate                     ";
-    $sql .= "  FROM users                       ";
-    $sql .= " WHERE loginid = '".$loginId."'    ";
-
-    $query = pg_query_params($db, $sql, $pg_param);
-    if (!$query){
-        systemError('systemError(getDelDate) SQL Error：',$sql.print_r($pg_param, TRUE));
-    } else {
-        $recCnt = pg_num_rows($query);
-    }
-
-    if ($recCnt != 0){
-        $deldate = pg_fetch_assoc($query);
-    }
-    return $deldate['deldate'];
-}
-
-/**
  * check status account user
  * @param $db
  * @return mixed
@@ -173,6 +143,12 @@ function checkDupUsername($db, $username): array
     return $data;
 }
 
+/**
+ * Duplicate email check
+ * @param $db
+ * @param $email
+ * @return array
+ */
 function checkDupEmail($db, $email): array
 {
     $recCnt = 0;
@@ -196,6 +172,13 @@ function checkDupEmail($db, $email): array
     return $data;
 }
 
+/**
+ * Duplicate email check by username
+ * @param $db
+ * @param $email
+ * @param $username
+ * @return array
+ */
 function checkDupEmailByUsername($db, $email, $username): array
 {
     $recCnt = 0;
@@ -303,4 +286,7 @@ function currentDate(){
     return $datenow;
 }
 
+function sendEmail(){
+
+}
 ?>

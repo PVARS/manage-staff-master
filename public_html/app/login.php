@@ -31,6 +31,7 @@ if ($param){
                 if (password_verify($password, $isLogin['password'])){
                     $_SESSION['uid'] = $isLogin['id'];
                     $_SESSION['username'] = $isLogin['username'];
+                    $_SESSION['fullName'] = $isLogin['fullName'];
                     $_SESSION['role'] = $isLogin['role'];
                     header('Location: manage-admin.php');
                     exit();
@@ -179,6 +180,7 @@ function login($con, $param, $funcId): ?array
     $sql = "";
     $sql .= "SELECT id                                      ";
     $sql .= "     , username                                ";
+    $sql .= "     , fullName                                ";
     $sql .= "     , password                                ";
     $sql .= "     , role                                    ";
     $sql .= "  FROM User                                    ";

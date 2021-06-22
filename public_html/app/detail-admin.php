@@ -237,7 +237,7 @@ echo <<<EOF
                                 
                                 <label>Mật khẩu&nbsp<span class="badge badge-danger">Bắt buộc</span></label>
                                 <div class="input-group mb-3">
-                                    <input type="password"  class="form-control" placeholder="Mật khẩu" name="password" value="{$password}">
+                                    <input type="password"  class="form-control" placeholder="Mật khẩu" name="password" value="">
                                 </div>
                                 
                                 <label>Email&nbsp<span class="badge badge-danger">Bắt buộc</span></label>
@@ -339,9 +339,10 @@ function validation($param): array
         $mes['chk_max_length'][] = 'Tên đăng nhập phải bé hơn 100 ký tự.';
     }
 
-    if (empty($param['password'])){
-        $mes['chk_required'][] = 'Vui lòng nhập mật khẩu.';
-    } elseif (mb_strlen($param['password']) > 100){
+//    if (empty($param['password'])){
+//        $mes['chk_required'][] = 'Vui lòng nhập mật khẩu.';
+//    }
+    if (!empty($param['password']) && mb_strlen($param['password']) > 100){
         $mes['chk_max_length'][] = 'Mật khẩu phải bé hơn 100 ký tự.';
     }
 
@@ -431,11 +432,17 @@ function updateAdmin($con, $param){
         $gender = $param['gender'];
     } else $gender = 'NULL';
 
+    $mysql = [];
+    if (!empty($param['password'])){
+        $mysql[] = ", password = '".password_hash($param['password'], PASSWORD_DEFAULT)."'     ";
+    }
+
+    $wheresql = join('', $mysql);
+
     $sql = "";
-    $sql .= "UPDATE User SET";
-//    $sql .= "       username = '".$param['username']."'                                             ";
+    $sql .= "UPDATE User SET                                                                        ";
     $sql .= "       fullName = '".$param['fullName']."'                                             ";
-    $sql .= "     , password = '".password_hash($param['password'], PASSWORD_DEFAULT)."'       ";
+    $sql .= $wheresql                                                                                ;
     $sql .= "     , email = '".$param['email']."'                                                   ";
     $sql .= "     , position = ".$param['position']."                                               ";
     $sql .= "     , role = ".$param['role']."                                                       ";
