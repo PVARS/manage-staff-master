@@ -1,12 +1,5 @@
 <?php
 $scriptHTML = !isset($scriptHTML) ? '' : $scriptHTML;
-$scriptMenu = '';
-if (isset($navLinkOnlick) && isset($navLinkActive)) {
-    $scriptMenu = <<<EOF
-        $('.{$navLinkOnlick}').addClass('menu-is-opening menu-open');
-        $('.{$navLinkActive}').addClass('nav-active');
-EOF;
-}
 
 // Output HTML
 print <<< EOF
@@ -59,9 +52,9 @@ print <<< EOF
             toolbar: [['style', ['style']], ['fontsize', ['fontsize']], ['font', ['bold', 'underline', 'clear']], ['fontname', ['fontname']], ['color', ['color']], ['para', ['ul', 'ol', 'paragraph']], ['table', ['table']], ['insert', ['link', 'picture', 'video']], ['view', ['fullscreen', 'codeview', 'help']]],
         });
 
-        // Script Menu
-        {$scriptMenu}
-
+        $("#datepicker").datepicker({
+            dateFormat: 'dd-mm-yy'
+        });
     })
 </script>
 {$scriptHTML}

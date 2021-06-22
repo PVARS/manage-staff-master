@@ -12,6 +12,7 @@ $iconClass = '';
 $error = 0;
 $readonly = '';
 $hrefBack = 'home.php';
+$htmlNote = '';
 
 session_start();
 
@@ -78,6 +79,10 @@ if ($param){
 
 if (isset($param['uid']) && !empty($param['uid'])){
     $readonly = 'readonly';
+    $htmlNote .= <<< EOF
+        <small class="form-text" style="color: red">(Mật khẩu cũ vẫn sẽ được giữ nguyên nếu bạn không nhập vào ô này)</small>
+EOF;
+
     $dataAdmin = getAdminById($con, $param);
     $fullName = $param['fullname'] ?? $dataAdmin['fullName'];
     $username = $param['username'] ?? $dataAdmin['username'];
@@ -146,15 +151,7 @@ EOF;
 //-----------------------------------------------------------
 $titleHTML = '';
 $cssHTML = '';
-$scriptHTML = <<<EOF
-<script>
-  $( function() {
-    $("#datepicker").datepicker({
-        dateFormat: 'dd-mm-yy'
-    });
-  } );
-  </script>
-EOF;
+$scriptHTML = '';
 
 echo <<<EOF
 <!DOCTYPE html>
@@ -236,6 +233,7 @@ echo <<<EOF
                                 </div>
                                 
                                 <label>Mật khẩu&nbsp<span class="badge badge-danger">Bắt buộc</span></label>
+                                {$htmlNote}
                                 <div class="input-group mb-3">
                                     <input type="password"  class="form-control" placeholder="Mật khẩu" name="password" value="">
                                 </div>
