@@ -326,7 +326,7 @@ function validation($param): array
     $mes = [
         'chk_required'   => [],
         'chk_format'     => [],
-        'chk_max_length' => [],
+        'chk_max_length' => []
     ];
 
     if (!empty($param['fullName']) && mb_strlen($param['fullName']) > 200){
@@ -339,11 +339,16 @@ function validation($param): array
         $mes['chk_max_length'][] = 'Tên đăng nhập phải bé hơn 100 ký tự.';
     }
 
-//    if (empty($param['password'])){
-//        $mes['chk_required'][] = 'Vui lòng nhập mật khẩu.';
-//    }
-    if (!empty($param['password']) && mb_strlen($param['password']) > 100){
-        $mes['chk_max_length'][] = 'Mật khẩu phải bé hơn 100 ký tự.';
+    if ($param['mode'] == 'new'){
+        if (empty($param['password'])){
+            $mes['chk_required'][] = 'Vui lòng nhập mật khẩu.';
+        } elseif (mb_strlen($param['password']) > 100){
+            $mes['chk_max_length'][] = 'Mật khẩu phải bé hơn 100 ký tự.';
+        }
+    } else {
+        if (!empty($param['password']) && mb_strlen($param['password']) > 100){
+            $mes['chk_max_length'][] = 'Mật khẩu phải bé hơn 100 ký tự.';
+        }
     }
 
     if (empty($param['email'])){

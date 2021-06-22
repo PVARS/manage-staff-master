@@ -319,11 +319,17 @@ function validation($param): array
     } elseif (mb_strlen($param['username']) > 100){
         $mes['chk_max_length'][] = 'Tên đăng nhập phải bé hơn 100 ký tự.';
     }
-
-    if (!empty($param['password']) && mb_strlen($param['password']) > 100){
-        $mes['chk_max_length'][] = 'Mật khẩu phải bé hơn 100 ký tự.';
+    if ($param['mode'] == 'new'){
+        if (empty($param['password'])){
+            $mes['chk_required'][] = 'Vui lòng nhập mật khẩu.';
+        } elseif (mb_strlen($param['password']) > 100){
+            $mes['chk_max_length'][] = 'Mật khẩu phải bé hơn 100 ký tự.';
+        }
+    } else {
+        if (!empty($param['password']) && mb_strlen($param['password']) > 100){
+            $mes['chk_max_length'][] = 'Mật khẩu phải bé hơn 100 ký tự.';
+        }
     }
-
     if (empty($param['email'])){
         $mes['chk_required'][] = 'Vui lòng nhập email.';
     } elseif (!preg_match('/^[\w\.\-_]+@[\w\.\-_]+\.\w+$/', $param['email'])){
