@@ -291,6 +291,7 @@ function getAllPosition($con,$param){
                         <form action="detail-postion.php" method="POST">
                             <input type="hidden" name="pid" value="{$row['id']}">
                             <input type="hidden" name="mode" value="update">
+                            <input type="hidden" name="dispFrom" value="manage-postion">
                             <button class="btn btn-primary btn-sm editPostion"><i class="fas fa-edit"></i></button>
                         </form>
                     </td>

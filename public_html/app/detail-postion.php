@@ -9,6 +9,7 @@ $funcId = 'manage-postion';
 $message = '';
 $messageClass = '';
 $iconClass = '';
+$hrefBack = 'home.php';
 
 session_start();
 //Get param
@@ -19,6 +20,10 @@ $con = openDB();
 if (!isset($_SESSION['uid']) || empty($_SESSION)){
     header('location: login.php');
     exit();
+}
+
+if (isset($param['dispFrom'])){
+    if ($param['dispFrom'] == 'manage-postion') $hrefBack = 'manage-postion.php';
 }
 
 $title = 'Tạo vị trí';
@@ -146,7 +151,7 @@ echo <<<EOF
         <div class="container-fluid">
             <div class="row">
                 <div class="col-12">
-                    <a href="list-users.php" class="btn btn-primary float-right mr-3" style="background-color: #17a2b8;" title="Danh sách người dùng">
+                    <a href="{$hrefBack}" class="btn btn-primary float-right mr-3" style="background-color: #17a2b8;" title="Danh sách người dùng">
                         <i class="fas fa-backward"></i>
                         &nbspTrở lại
                     </a>
