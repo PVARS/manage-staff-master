@@ -143,6 +143,14 @@ print <<<EOF
                 </ul>
             </li>
             <li class="nav-item nav-link-new">
+                <a href="send-request.php" class="nav-link">
+                    <i class="fas fa-envelope-open-text nav-icon"></i>
+                    <p>
+                        Gửi email
+                    </p>
+                </a>
+            </li>
+            <li class="nav-item nav-link-new">
                 <a href="javascript:void(0)" class="nav-link">
                     <i class="fas fa-user-cog nav-icon"></i>
                     <p>
