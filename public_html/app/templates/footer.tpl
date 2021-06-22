@@ -2,8 +2,8 @@
 // Output HTML
 print <<< EOF
 <footer class="main-footer">
-<strong>Copyright &copy; <a href="https://www.facebook.com/groups/ArsenalQuan" target="_blank">Arsenal Quán</a>
-    </footer>
+<strong>Copyright &copy; <a href="#" target="_blank">Team 1 - BAP Software</a>
+    </strong>
 
     <!-- Control Sidebar -->
     <aside class="control-sidebar control-sidebar-dark">

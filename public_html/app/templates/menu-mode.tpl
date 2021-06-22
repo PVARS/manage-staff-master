@@ -5,6 +5,35 @@ $navLinkActive = $navs['navLinkActive'] ?? '';
 $navLinkOnlick = $navs['navLinkOnlick'] ?? 'info';
 $name = $_SESSION['username'] ?? '';
 
+$menuManageAdmin = '';
+if($_SESSION['role'] == 1){
+    $menuManageAdmin .= <<< EOF
+        <li class="nav-item nav-link-new">
+            <a href="javascript:void(0)" class="nav-link">
+                <i class="fas fa-user-shield nav-icon"></i>
+                <p>
+                    Quản lí quản trị viên
+                    <i class="fas fa-angle-left right"></i>
+                </p>
+            </a>
+            <ul class="nav nav-treeview">
+                <li class="nav-item">
+                    <a href="detail-admin.php" class="nav-link nav-link-new-detail">
+                        <i class="fas fa-plus-square nav-icon"></i>
+                        <p>Thêm quản trị viên</p>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="manage-admin.php" class="nav-link nav-link-new-list">
+                        <i class="fas fa-list-ul nav-icon"></i>
+                        <p>Danh sách quản trị viên</p>
+                    </a>
+                </li>
+            </ul>
+            </li>
+EOF;
+}
+
 //Output HTML
 print <<<EOF
 <aside class="main-sidebar sidebar-dark-primary elevation-4">
@@ -43,29 +72,7 @@ print <<<EOF
                     </p>
                 </a>
             </li>
-            <li class="nav-item nav-link-new">
-                <a href="javascript:void(0)" class="nav-link">
-                    <i class="fas fa-user-shield nav-icon"></i>
-                    <p>
-                        Quản lí quản trị viên
-                        <i class="fas fa-angle-left right"></i>
-                    </p>
-                </a>
-                <ul class="nav nav-treeview">
-                    <li class="nav-item">
-                        <a href="detail-admin.php" class="nav-link nav-link-new-detail">
-                            <i class="fas fa-plus-square nav-icon"></i>
-                            <p>Thêm quản trị viên</p>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="manage-admin.php" class="nav-link nav-link-new-list">
-                            <i class="fas fa-list-ul nav-icon"></i>
-                            <p>Danh sách quản trị viên</p>
-                        </a>
-                    </li>
-                </ul>
-            </li>
+            {$menuManageAdmin}
             <li class="nav-item nav-link-new">
                 <a href="javascript:void(0)" class="nav-link">
                     <i class="fas fa-list-ul nav-icon"></i>

@@ -21,6 +21,16 @@ $param = getParam();
 //Connect DB
 $con = openDB();
 
+if (!isset($_SESSION['uid']) || empty($_SESSION)){
+    header('location: login.php');
+    exit();
+}
+
+if ($_SESSION['role'] != 1){
+    header('location: not-found.php');
+    exit();
+}
+
 $mode = $param['mode'] ?? 'new';
 $uid = $param['uid'] ?? '';
 
@@ -497,7 +507,8 @@ function insertAdmin($con, $param){
     exit();
 }
 
-function getSelectPosition($con, $position){
+function getSelectPosition($con, $position): string
+{
     $recCnt = 0;
 
     $sql = "";
@@ -528,7 +539,8 @@ function getSelectPosition($con, $position){
     return $html;
 }
 
-function getSelectRole($con, $role){
+function getSelectRole($con, $role): string
+{
     $recCnt = 0;
 
     $sql = "";

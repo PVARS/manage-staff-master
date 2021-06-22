@@ -23,6 +23,11 @@ if (!isset($_SESSION['uid']) || empty($_SESSION)){
     exit();
 }
 
+if ($_SESSION['role'] != 1){
+    header('location: not-found.php');
+    exit();
+}
+
 $isStatus = checkStatusUser($con);
 if ($isStatus['lockFlg'] == 1){
     header('Location: error-page.php');
