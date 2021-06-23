@@ -59,13 +59,13 @@ print <<<EOF
     <nav class="mt-2">
         <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
             <li class="nav-item">
-                <a href="dashboard.php" class="nav-link nav-link-dashboard">
+                <a href="home.php" class="nav-link nav-link-dashboard">
                     <i class="nav-icon fas fa-home"></i>
                     <p>Trang chủ</p>
                 </a>
             </li>
             <li class="nav-item nav-link-new">
-                <a href="javascript:void(0)" class="nav-link">
+                <a href="checkinOut.php" class="nav-link">
                     <i class="fas fa-user-check nav-icon"></i>
                     <p>
                         Checkin / checkout
