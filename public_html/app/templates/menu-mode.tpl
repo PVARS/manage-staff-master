@@ -135,7 +135,7 @@ print <<<EOF
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a href="list-news.php" class="nav-link nav-link-new-list">
+                        <a href="manage-news.php" class="nav-link nav-link-new-list">
                             <i class="fas fa-list-ul nav-icon"></i>
                             <p>Danh sách bài viết</p>
                         </a>
@@ -165,7 +165,7 @@ print <<<EOF
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a href="list-news.php" class="nav-link nav-link-new-list">
+                        <a href="manage-news.php" class="nav-link nav-link-new-list">
                             <i class="fas fa-list-ul nav-icon"></i>
                             <p>Danh sách bài viết</p>
                         </a>
