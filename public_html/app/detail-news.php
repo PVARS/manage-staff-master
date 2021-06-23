@@ -29,45 +29,41 @@ if (!isset($_SESSION['uid']) || empty($_SESSION)){
 $thumbnail = 'Chọn file';
 $image = $param['image'] ?? '';
 $mode = $param['mode'] ?? 'new';
+$nid = $param['nid'] ?? '';
 
-if ($param){
-    if (isset($param['registFlg']) && $param['registFlg'] == 1){
+if ($param) {
+    if (isset($param['registFlg']) && $param['registFlg'] == 1) {
         $mes = [];
 
-        if (empty($param['title'])){
-            $mes[] = 'Vui lòng nhập tiêu đề';
-        }
-
         $targetDir = 'uploads';
-        if (!file_exists('uploads')){
+        if (!file_exists('uploads')) {
             mkdir($targetDir, 0777, true);
         }
-        $targetFile = $targetDir.'/'.basename($_FILES['thumbnail']['name']);
+        $targetFile = $targetDir . '/' . basename($_FILES['thumbnail']['name']);
         $allowUpload = true;
         $extensionFile = pathinfo($targetFile, PATHINFO_EXTENSION);
         $allowtypes = ['jpg', 'png', 'jpeg', 'gif'];
 
-        if (isset($_FILES['thumbnail']['name']) && !empty($_FILES['thumbnail']['name'])){
+        if (isset($_FILES['thumbnail']['name']) && !empty($_FILES['thumbnail']['name'])) {
             $checkImage = getimagesize($_FILES["thumbnail"]["tmp_name"]);
-            if ($checkImage != true){
+            if ($checkImage != true) {
                 $allowUpload = false;
                 $mes[] = 'Chỉ được uploads hình ảnh.';
-            } elseif(!in_array($extensionFile, $allowtypes)){
+            } elseif (!in_array($extensionFile, $allowtypes)) {
                 $allowUpload = false;
                 $mes[] = 'Chỉ uploads hình ảnh có đuôi JPG, PNG, JPEG, GIF.';
             }
 
-            if ($_FILES['thumbnail']['size'] > 26214400){
+            if ($_FILES['thumbnail']['size'] > 26214400) {
                 $mes[] = 'Ảnh không được quá 25MB.';
             }
         }
 
-        if (empty($mes) && $allowUpload == true){
-            if (move_uploaded_file($_FILES["thumbnail"]["tmp_name"], $targetFile)){
-                if ($mode == 'new'){
+        if (empty($mes) && $allowUpload == true) {
+            if (move_uploaded_file($_FILES["thumbnail"]["tmp_name"], $targetFile)) {
+                if ($mode == 'new') {
                     $isSuccess = insertNews($con, $param, $targetFile);
-                    if ($isSuccess){
-                        $clearSessionJs = 1;
+                    if ($isSuccess) {
                         $_SESSION['message'] = 'Thêm thành công';
                         $_SESSION['messageClass'] = 'alert-success';
                         $_SESSION['iconClass'] = 'fas fa-check';
@@ -75,12 +71,15 @@ if ($param){
                         header('Location: manage-news.php');
                         exit();
                     }
+
                 }
+            } else {
+                $error = 1;
             }
-            if ($mode == 'update'){
+
+            if ($mode == 'update') {
                 $isSuccess = updateNews($con, $param);
-                if ($isSuccess){
-                    $clearSessionJs = 1;
+                if ($isSuccess) {
                     $_SESSION['message'] = 'Cập nhật thành công';
                     $_SESSION['messageClass'] = 'alert-success';
                     $_SESSION['iconClass'] = 'fas fa-check';
@@ -90,12 +89,11 @@ if ($param){
                 }
             }
         }
-    }
-
-    $message = join('</br>', $mes);
-    if (strlen($message)){
-        $messageClass = 'alert-danger';
-        $iconClass = 'fas fa-ban';
+        $message = join('</br>', $mes);
+        if (strlen($message)){
+            $messageClass = 'alert-danger';
+            $iconClass = 'fas fa-ban';
+        }
     }
 }
 
@@ -150,7 +148,6 @@ $(document).ready(function (){
         var that = $(this)[0];
         sweetConfirm(1, message, function(result) {
             if (result){
-                // sessionStorage.removeItem('fileName');
                 window.location.href = that.href;
             }
         });
@@ -164,41 +161,35 @@ $(document).ready(function (){
     $('input[type="file"]').change(function(e){
         var fileName = e.target.files[0].name;
         $('.thumbnail').text(fileName);
-        $('.valueImage').val(fileName);
-        // sessionStorage.setItem('fileName', fileName);
+        $('.valueImage').val(fileName);   
     });
     
-    $('#saveNews').click(function () {
-        var valueImage = $('.valueImage').val();
-        if (valueImage){
-            var data = $('.thumbnail').text(valueImage);
-            console.log();
-        }
-        // var valueImage = $('.valueImage').val();
-        // if (valueImage.length !== 0){
-        //     console.log(valueImage)
-        //     alert(valueImage);
-        //     $('.thumbnail').text(valueImage);
-        // }
-    });
+    var valueImage = $('.valueImage').val();
+    $('.thumbnail').text(valueImage);
     
+    if ({$error} == 1){
+        Swal.fire({
+            position: 'center',
+            icon: 'warning',
+            title: 'Upload hình ảnh không thành công',
+            showConfirmButton: true,
+            timer: 5000
+        });
+    }
     
-    
-    // if (sessionStorage.getItem('fileName')){
-    //     $('.thumbnail').text(sessionStorage.getItem('fileName'));
-    // }
-})
+    $('#saveNews').on('click', function(e) {
+      var title = $('.title').val();
+      if (!title){
+          $('#message').show();
+          return;
+      } else {
+          $('#form-edit').submit();
+      }
+    })
+});
 </script>
 EOF;
-//if ({$clearSessionJs} == 1){
-//        sessionStorage.removeItem('fileName');
-//    }
-//
-//    $('#saveNews').click(function () {
-//       if (this.id != 'saveNews') {
-//          sessionStorage.removeItem('fileName');
-//       }
-//    });
+
 echo <<<EOF
 <!DOCTYPE html>
 <html>
@@ -256,6 +247,16 @@ echo <<<EOF
             <div class="row">
                 <div class="card-body">
                     {$messageHtml}
+                    <div class="alert alert-danger alert-dismissible" id="message" style="display: none">
+                        <div class="row">
+                            <div class="icon">
+                                <i class="fas fa-ban"></i>
+                            </div>
+                            <div class="col-10">
+                                Vui lòng nhập tiêu đề.
+                            </div>
+                        </div>
+                    </div>
                     <form action="{$_SERVER['SCRIPT_NAME']}" method="POST" id="form-edit" enctype="multipart/form-data">
                         <div class="card card-info">
                             <div class="card-header">
@@ -264,16 +265,15 @@ echo <<<EOF
                             <div class="card-body">
                                 <label>Tiêu đề&nbsp<span class="badge badge-danger">Bắt buộc</span></label>
                                 <div class="input-group mb-3">
-                                    <input type="text" class="form-control" placeholder="Tiêu đề" name="title" value="{$title}" autocomplete="off">
+                                    <input type="text" class="form-control title" placeholder="Tiêu đề" name="title" value="{$title}" autocomplete="off">
                                 </div>
                                 
                                 <label>Thumbnail</label>
                                 <div class="input-group mb-3">
                                     <div class="custom-file">
-                                        <input type="file" class="custom-file-input" name="thumbnail" id="thumbnail" value="">
-                                        <label class="custom-file-label thumbnail" for="thumbnail">Chọn file</label>
+                                        <input type="file" class="custom-file-input" name="thumbnail" id="thumbnail">
+                                        <label class="custom-file-label thumbnail" for="thumbnail"></label>
                                         <input type="hidden" class="valueImage" name="image" value="{$image}">
-<!--                                        <input type="file" class="thumbnail" name="thumbnail" id="thumbnail" value="">-->
                                     </div>
                                 </div>
                                 
@@ -285,12 +285,12 @@ echo <<<EOF
                             <div class="card-footer">
                                 <input type="hidden" class="mode" name="mode" value="{$mode}">
                                 <input type="hidden" name="registFlg" value="1">
-                                <input type="hidden" name="nid" value="{$param['nid']}">
+                                <input type="hidden" name="nid" value="{$nid}">
                                 <a class="btn btn-default" id="btnClear">
                                     <i class="fas fa-eraser fa-fw"></i>
                                     Xoá
                                 </a>
-                                <button type="submit" class="btn btn-primary float-right" id="saveNews" style="background-color: #17a2b8;">
+                                <button type="button" class="btn btn-primary float-right" id="saveNews" style="background-color: #17a2b8;">
                                     <i class="fas fa-save"></i>
                                     &nbspLưu
                                 </button>
@@ -317,6 +317,7 @@ echo <<<EOF
 </body>
 </html>
 EOF;
+
 function getNewsById($con, $param){
     $data = [];
     $recCnt = 0;
@@ -368,7 +369,7 @@ function updateNews($con, $param){
     $sql = "";
     $sql .= "UPDATE News SET                                     ";
     $sql .= "  title = '".$param['title']."'                     ";
-    $sql .= ", thumbnail = '".$param['image']."'                         ";
+    $sql .= ", thumbnail = 'uploads/".$param['image']."'         ";
     $sql .= ", content = '".$param['content']."'                 ";
     $sql .= ", modifyDate = ".strtotime(currentDateTime())."     ";
     $sql .= ", modifyBy = ".$_SESSION['uid']."                   ";
