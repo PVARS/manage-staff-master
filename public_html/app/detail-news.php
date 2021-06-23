@@ -3,11 +3,6 @@
 //Common setting
 require_once ('config.php');
 require_once ('lib.php');
-require_once ('plugins/PHPMailer/PHPMailer.php');
-require_once ('plugins/PHPMailer/SMTP.php');
-require_once ('plugins/PHPMailer/Exception.php');
-
-use PHPMailer\PHPMailer\PHPMailer;
 
 //Initialization
 $func_id = 'send_request';
@@ -16,6 +11,7 @@ $messageClass = '';
 $iconClass = '';
 $error = 0;
 $readonly = '';
+$clearSessionJs = 0;
 
 session_start();
 
@@ -30,32 +26,68 @@ if (!isset($_SESSION['uid']) || empty($_SESSION)){
     exit();
 }
 
-$titleEmail = $param['titleEmail'] ?? '';
-$mailTo = $param['mailTo'] ?? '';
-$content = $param['content'] ?? '';
+$thumbnail = 'Chọn file';
+$image = $param['image'] ?? '';
+$mode = $param['mode'] ?? 'new';
 
 if ($param){
     if (isset($param['registFlg']) && $param['registFlg'] == 1){
         $mes = [];
 
-        $targetDir = 'uploads/';
-        $targetFile = $targetDir.basename($_FILES['thumbnail']['name']);
+        if (empty($param['title'])){
+            $mes[] = 'Vui lòng nhập tiêu đề';
+        }
+
+        $targetDir = 'uploads';
+        if (!file_exists('uploads')){
+            mkdir($targetDir, 0777, true);
+        }
+        $targetFile = $targetDir.'/'.basename($_FILES['thumbnail']['name']);
         $allowUpload = true;
         $extensionFile = pathinfo($targetFile, PATHINFO_EXTENSION);
         $allowtypes = ['jpg', 'png', 'jpeg', 'gif'];
 
-        $checkImage = getimagesize($_FILES["thumbnail"]["tmp_name"]);
-        if ($checkImage != true){
-            $allowUpload = false;
-            $mes[] = 'Chỉ được uploads hình ảnh.';
-        } elseif(!in_array($extensionFile, $allowtypes)){
-            $allowUpload = false;
-            $mes[] = 'Chỉ uploads hình ảnh có đuôi JPG, PNG, JPEG, GIF.';
+        if (isset($_FILES['thumbnail']['name']) && !empty($_FILES['thumbnail']['name'])){
+            $checkImage = getimagesize($_FILES["thumbnail"]["tmp_name"]);
+            if ($checkImage != true){
+                $allowUpload = false;
+                $mes[] = 'Chỉ được uploads hình ảnh.';
+            } elseif(!in_array($extensionFile, $allowtypes)){
+                $allowUpload = false;
+                $mes[] = 'Chỉ uploads hình ảnh có đuôi JPG, PNG, JPEG, GIF.';
+            }
+
+            if ($_FILES['thumbnail']['size'] > 26214400){
+                $mes[] = 'Ảnh không được quá 25MB.';
+            }
         }
 
-        if (empty($mes) && $allowUpload){
+        if (empty($mes) && $allowUpload == true){
             if (move_uploaded_file($_FILES["thumbnail"]["tmp_name"], $targetFile)){
-                var_dump(basename($_FILES["thumbnail"]["name"]));
+                if ($mode == 'new'){
+                    $isSuccess = insertNews($con, $param, $targetFile);
+                    if ($isSuccess){
+                        $clearSessionJs = 1;
+                        $_SESSION['message'] = 'Thêm thành công';
+                        $_SESSION['messageClass'] = 'alert-success';
+                        $_SESSION['iconClass'] = 'fas fa-check';
+
+                        header('Location: manage-news.php');
+                        exit();
+                    }
+                }
+            }
+            if ($mode == 'update'){
+                $isSuccess = updateNews($con, $param);
+                if ($isSuccess){
+                    $clearSessionJs = 1;
+                    $_SESSION['message'] = 'Cập nhật thành công';
+                    $_SESSION['messageClass'] = 'alert-success';
+                    $_SESSION['iconClass'] = 'fas fa-check';
+
+                    header('Location: manage-news.php');
+                    exit();
+                }
             }
         }
     }
@@ -65,6 +97,18 @@ if ($param){
         $messageClass = 'alert-danger';
         $iconClass = 'fas fa-ban';
     }
+}
+
+if (isset($param['nid']) && !empty($param['nid'])){
+    $dataNews = getNewsById($con, $param);
+    $image = str_replace('uploads/', '', $dataNews['thumbnail']);
+    $title = $param['title'] ?? $dataNews['title'];
+    $thumbnail = $param['thumbnail'] ?? $image;
+    $content = $param['content'] ?? html_entity_decode($dataNews['content']);
+} else {
+    $title = $param['title'] ?? '';
+    $thumbnail = $param['thumbnail'] ?? '';
+    $content = $param['content'] ?? '';
 }
 
 //Message HTML
@@ -79,16 +123,16 @@ if(isset($_SESSION['message']) && strlen($_SESSION['message'])){
 $messageHtml  = '';
 if(strlen($message)){
     $messageHtml = <<< EOF
-    <div class="alert {$messageClass} alert-dismissible">
-        <div class="row">
-            <div class="icon">
-                <i class="{$iconClass}"></i>
-            </div>
-            <div class="col-10">
-                {$message}
+        <div class="alert {$messageClass} alert-dismissible">
+            <div class="row">
+                <div class="icon">
+                    <i class="{$iconClass}"></i>
+                </div>
+                <div class="col-10">
+                    {$message}
+                </div>
             </div>
         </div>
-    </div>
 EOF;
 }
 
@@ -97,8 +141,64 @@ EOF;
 //-----------------------------------------------------------
 $titleHTML = '';
 $cssHTML = '';
-$scriptHTML = '';
-
+$scriptHTML = <<< EOF
+<script>
+$(document).ready(function (){
+    $("#btnClear").on("click", function(e) {
+        e.preventDefault();
+        var message = "Đặt màn hình tìm kiếm về trạng thái ban đầu?";
+        var that = $(this)[0];
+        sweetConfirm(1, message, function(result) {
+            if (result){
+                // sessionStorage.removeItem('fileName');
+                window.location.href = that.href;
+            }
+        });
+    });
+    
+    if ('{$mode}' == 'update'){
+        $('.thumbnail').text('{$thumbnail}');
+        $('.image').val('{$thumbnail}');
+    }
+    
+    $('input[type="file"]').change(function(e){
+        var fileName = e.target.files[0].name;
+        $('.thumbnail').text(fileName);
+        $('.valueImage').val(fileName);
+        // sessionStorage.setItem('fileName', fileName);
+    });
+    
+    $('#saveNews').click(function () {
+        var valueImage = $('.valueImage').val();
+        if (valueImage){
+            var data = $('.thumbnail').text(valueImage);
+            console.log();
+        }
+        // var valueImage = $('.valueImage').val();
+        // if (valueImage.length !== 0){
+        //     console.log(valueImage)
+        //     alert(valueImage);
+        //     $('.thumbnail').text(valueImage);
+        // }
+    });
+    
+    
+    
+    // if (sessionStorage.getItem('fileName')){
+    //     $('.thumbnail').text(sessionStorage.getItem('fileName'));
+    // }
+})
+</script>
+EOF;
+//if ({$clearSessionJs} == 1){
+//        sessionStorage.removeItem('fileName');
+//    }
+//
+//    $('#saveNews').click(function () {
+//       if (this.id != 'saveNews') {
+//          sessionStorage.removeItem('fileName');
+//       }
+//    });
 echo <<<EOF
 <!DOCTYPE html>
 <html>
@@ -164,28 +264,33 @@ echo <<<EOF
                             <div class="card-body">
                                 <label>Tiêu đề&nbsp<span class="badge badge-danger">Bắt buộc</span></label>
                                 <div class="input-group mb-3">
-                                    <input type="text" class="form-control" placeholder="Tiêu đề email" name="titleEmail" value="{$titleEmail}" autocomplete="off">
+                                    <input type="text" class="form-control" placeholder="Tiêu đề" name="title" value="{$title}" autocomplete="off">
                                 </div>
                                 
                                 <label>Thumbnail</label>
                                 <div class="input-group mb-3">
                                     <div class="custom-file">
-<!--                                        <input type="file" class="custom-file-input" name="thumbnail" value="">-->
-<!--                                        <label class="custom-file-label" for="customFile"></label>-->
-                                        <input type="file" name="thumbnail" id="thumbnail" value="111">
+                                        <input type="file" class="custom-file-input" name="thumbnail" id="thumbnail" value="">
+                                        <label class="custom-file-label thumbnail" for="thumbnail">Chọn file</label>
+                                        <input type="hidden" class="valueImage" name="image" value="{$image}">
+<!--                                        <input type="file" class="thumbnail" name="thumbnail" id="thumbnail" value="">-->
                                     </div>
                                 </div>
                                 
-                                <label>Nội dung&nbsp<span class="badge badge-danger">Bắt buộc</span></label>
+                                <label>Nội dung</label>
                                 <textarea id="summernote" name="content">{$content}</textarea>
                                 
                             </div>
                             <!-- /.card-body -->
                             <div class="card-footer">
-                                <input type="hidden" class="mode" name="mode" value="">
+                                <input type="hidden" class="mode" name="mode" value="{$mode}">
                                 <input type="hidden" name="registFlg" value="1">
-                                <input type="hidden" name="uid" value="">
-                                <button type="submit" class="btn btn-primary float-right" id="saveUser" style="background-color: #17a2b8;">
+                                <input type="hidden" name="nid" value="{$param['nid']}">
+                                <a class="btn btn-default" id="btnClear">
+                                    <i class="fas fa-eraser fa-fw"></i>
+                                    Xoá
+                                </a>
+                                <button type="submit" class="btn btn-primary float-right" id="saveNews" style="background-color: #17a2b8;">
                                     <i class="fas fa-save"></i>
                                     &nbspLưu
                                 </button>
@@ -212,5 +317,68 @@ echo <<<EOF
 </body>
 </html>
 EOF;
+function getNewsById($con, $param){
+    $data = [];
+    $recCnt = 0;
 
+    $sql = "";
+    $sql .= "SELECT title                         ";
+    $sql .= "     , thumbnail                     ";
+    $sql .= "     , content                       ";
+    $sql .= "  FROM News                          ";
+    $sql .= " WHERE id = ".$param['nid']."        ";
+
+    $query = mysqli_query($con, $sql);
+    if (!$query){
+        systemError('systemError(getAllPosition) SQL Error：', $sql.print_r(TRUE));
+    } else {
+        $recCnt = mysqli_num_rows($query);
+    }
+
+    if ($recCnt != 0){
+        $data = mysqli_fetch_assoc($query);
+    }
+    return $data;
+}
+
+function insertNews($con, $param, $targetFile){
+    $sql = "";
+    $sql .= "INSERT INTO News(                          ";
+    $sql .= "  title                                    ";
+    $sql .= ", thumbnail                                ";
+    $sql .= ", content                                  ";
+    $sql .= ", createDate                               ";
+    $sql .= ", createBy)                                ";
+    $sql .= "  VALUES(                                  ";
+    $sql .= " '".$param['title']."'                     ";
+    $sql .= ", '".$targetFile."'                        ";
+    $sql .= ", '".$param['content']."'                  ";
+    $sql .= ", ".strtotime(currentDateTime())."         ";
+    $sql .= ", ".$_SESSION['uid'].")                    ";
+
+    $query = mysqli_query($con, $sql);
+    if (!$query){
+        systemError('systemError(getAllPosition) SQL Error：', $sql.print_r(TRUE));
+        return false;
+    }
+    return true;
+}
+
+function updateNews($con, $param){
+    $sql = "";
+    $sql .= "UPDATE News SET                                     ";
+    $sql .= "  title = '".$param['title']."'                     ";
+    $sql .= ", thumbnail = '".$param['image']."'                         ";
+    $sql .= ", content = '".$param['content']."'                 ";
+    $sql .= ", modifyDate = ".strtotime(currentDateTime())."     ";
+    $sql .= ", modifyBy = ".$_SESSION['uid']."                   ";
+    $sql .= "  WHERE id = ".$param['nid']."                      ";
+
+    $query = mysqli_query($con, $sql);
+    if (!$query){
+        systemError('systemError(getAllPosition) SQL Error：', $sql.print_r(TRUE));
+        return false;
+    }
+    return true;
+}
 ?>
