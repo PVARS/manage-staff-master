@@ -48,7 +48,7 @@ include ($TEMP_APP_MENU_MOD_PATH);
 //Conntent
 echo <<<EOF
 <div class="content-wrapper d-flex">
-    <div class="row">
+    <div class="row mt-5">
         {$htmlNew}
     </div>
   </div>
@@ -86,9 +86,11 @@ function showNew($con)
         while($row = mysqli_fetch_assoc($query)){
             $stt++;
             $date = date('d-m-Y',$row['createDate']);
+            $content = html_entity_decode($row['content']);
+
             if(empty($row['thumbnail'])){
                 $image = "https://i.pinimg.com/736x/dc/5f/50/dc5f502fffc9a064bca7a7be5c8771b2.jpg";
-            }else{
+            } else{
                 $image = $row['thumbnail'];
 
             }
@@ -96,7 +98,7 @@ function showNew($con)
                 <div class="col-md-4">
                     <div class="col-md-11" style="margin-left:5%">
                         <div class="card">
-                            <img class="card-img-top" src="{$image}" alt="Card image cap">
+                            <img class="card-img-top" src="{$image}" alt="Card image cap" style="height: 300px;">
                             <div class="card-body">
                                 <a type="button" class="" data-toggle="modal" data-target="#myModal{$stt}"><h2>{$row['title']}</h2></a> </br>
                                 <span>{$row['fullName']} - {$date}</span> <br>
@@ -113,7 +115,7 @@ function showNew($con)
                             </div>
                             <div class="modal-body">
                                 <img class="card-img-top" src="{$image}">
-                                <p style="margin-top:5px">{$row['content']}.</p>
+                                <p style="margin-top:5px">{$content}.</p>
                             </div>
                             <div class="modal-body">
                                 <span style="float:right;">{$row['fullName']} - {$date}</span> <br>

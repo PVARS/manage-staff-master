@@ -38,6 +38,8 @@ $username = $param['username'] ?? '';
 $numberPhone = $param['numberPhone'] ?? '';
 $email = $param['email'] ?? '';
 $status = $param['status'] ?? '';
+$dateFrom = $param['dateFrom'] ?? '';
+$dateTo = $param['dateTo'] ?? '';
 $selected = '';
 if (!empty($status)) $selected = 'selected';
 
@@ -49,7 +51,17 @@ if ($param){
 
     if (empty($mes)) $htmlDataMember;
     if (isset($param['uid'])) lock($con, $param);
+    if (!empty($param['dateFrom'])){
+        if (strtotime($param['dateFrom']) == false){
+            $mes[] = 'Vui lòng nhập ngày đến định dạng.';
+        }
+    }
 
+    if (!empty($param['dateTo'])){
+        if (strtotime($param['dateTo']) == false){
+            $mes[] = 'Vui lòng nhập ngày từ định dạng.';
+        }
+    }
     $message = join('<br>', $mes);
     if (strlen($message)) {
         $messageClass = 'alert-danger';
@@ -89,6 +101,9 @@ $cssHTML = '';
 $scriptHTML = <<< EOF
 <script>
 $(function() {
+    $("#datepickerTo").datepicker({
+        dateFormat: 'dd-mm-yy'
+    });
     $("#btnClear").on("click", function(e) {
         e.preventDefault();
         var message = "Đặt màn hình tìm kiếm về trạng thái ban đầu?";
@@ -251,14 +266,14 @@ echo <<<EOF
                                                 <div class="input-group-prepend">
                                                     <span class="input-group-text"><i class="fas fa-calendar-alt"></i></span>
                                                 </div>
-                                                <input type="date" name="dateFrom" class="form-control" value="">
+                                                <input type="text" id="datepicker" placeholder="10-05-2021" name="dateFrom" class="form-control" value="{$dateFrom}" autocomplete="off">
                                             </div>
                                             <span><b>~</b></span>
                                             <div class="input-group mb-6 col-3">
                                                 <div class="input-group-prepend">
                                                     <span class="input-group-text"><i class="fas fa-calendar-alt"></i></span>
                                                 </div>
-                                                <input type="date" name="dateTo" class="form-control" value="">
+                                                <input type="text" id="datepickerTo" placeholder="10-05-2021" name="dateTo" class="form-control" value="{$dateTo}" autocomplete="off">
                                             </div>
                                         </div>
                                     </div>
@@ -359,11 +374,11 @@ function showDataMember($con, $param): string
     }
 
     if (!empty($param['dateFrom'])){
-        $mysql[] = "AND createDate >= ".$param['dateFrom']."       ";
+        $mysql[] = "AND unix_timestamp(DATE(from_unixtime(User.createDate))) >= ".strtotime($param['dateFrom'])."       ";
     }
 
     if (!empty($param['dateTo'])){
-        $mysql[] = "AND createDate <= ".$param['dateFrom']."       ";
+        $mysql[] = "AND unix_timestamp(DATE(from_unixtime(User.createDate))) <= ".strtotime($param['dateTo'])."         ";
     }
 
     if (!empty($param['status'])){
