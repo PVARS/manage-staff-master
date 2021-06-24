@@ -58,7 +58,17 @@ if ($param){
     }
 
     if (empty($mes)){
-        sendMail($param);
+        $isSend = sendMail($param);
+        if ($isSend){
+            $_SESSION['message'] = 'Email đã được gửi đến '.$param['mailTo'];
+            $_SESSION['messageClass'] = 'alert-success';
+            $_SESSION['iconClass'] = 'fas fa-check';
+
+            header('location: send-request.php');
+            exit();
+        } else {
+            $error = 1;
+        }
     }
 
     $message = join('</br>', $mes);
@@ -98,7 +108,21 @@ EOF;
 //-----------------------------------------------------------
 $titleHTML = '';
 $cssHTML = '';
-$scriptHTML = '';
+$scriptHTML = <<< EOF
+<script>
+$(function (){
+    if ({$error} == 1){
+        Swal.fire({
+            position: 'center',
+            icon: 'warning',
+            title: 'Đã xảy ra lỗi trong quá trình gửi email',
+            showConfirmButton: true,
+            timer: 5000
+        });
+    }
+})
+</script>
+EOF;
 
 echo <<<EOF
 <!DOCTYPE html>
@@ -211,9 +235,10 @@ echo <<<EOF
 EOF;
 
 /**
+ * setting send email
  * @throws \PHPMailer\PHPMailer\Exception
  */
-function sendMail($param)
+function sendMail($param): bool
 {
     // SETTING PHPMAIL
     $mail = new PHPMailer();
@@ -233,15 +258,6 @@ function sendMail($param)
     $mail->Port       = 465;
     $mail->Body       = html_entity_decode($param['content'], ENT_QUOTES, 'UTF-8');
 
-    if ($mail->send()) {
-        $_SESSION['message'] = 'Email đã được gửi đến '.$param['mailTo'];
-        $_SESSION['messageClass'] = 'alert-success';
-        $_SESSION['iconClass'] = 'fas fa-check';
-
-        header('location: send-request.php');
-        exit();
-    } else {
-        $mail->isError();
-    }
+    return $mail->send();
 }
 ?>

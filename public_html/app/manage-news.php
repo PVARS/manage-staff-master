@@ -40,7 +40,6 @@ $keyword = $param['keyword'] ?? '';
 $dateFrom = $param['dateFrom'] ?? '';
 $dateTo = $param['dateTo'] ?? '';
 
-
 $htmlDataNews = '';
 $htmlDataNews = showDataNews($con, $param);
 
@@ -309,7 +308,8 @@ EOF;
  * @param $param
  * @return string
  */
-function showDataNews($con, $param){
+function showDataNews($con, $param): string
+{
     $mysql = [];
     $recCnt = 0;
 
@@ -399,9 +399,12 @@ EOF;
     return $html;
 }
 
+/**
+ * delete a news
+ * @param $con
+ * @param $param
+ */
 function deleteNews($con, $param){
-    $recCnt = 0;
-
     $sql = "";
     $sql .= "DELETE FROM News WHERE id = ".$param['nid']." ";
 

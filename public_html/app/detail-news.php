@@ -68,10 +68,10 @@ if ($param) {
             $checkImage = getimagesize($_FILES["thumbnail"]["tmp_name"]);
             if ($checkImage != true) {
                 $allowUpload = false;
-                $mes[] = 'Chỉ được uploads hình ảnh.';
+                $mes[] = 'Chỉ được upload hình ảnh.';
             } elseif (!in_array($extensionFile, $allowtypes)) {
                 $allowUpload = false;
-                $mes[] = 'Chỉ uploads hình ảnh có đuôi JPG, PNG, JPEG, GIF.';
+                $mes[] = 'Chỉ upload hình ảnh có đuôi JPG, PNG, JPEG, GIF.';
             }
 
             if ($_FILES['thumbnail']['size'] > 26214400) {
@@ -83,31 +83,14 @@ if ($param) {
         if (empty($mes) && $allowUpload == true) {
             if (move_uploaded_file($_FILES["thumbnail"]["tmp_name"], $targetFile)) {
                 if ($mode == 'new') {
-                    $isSuccess = insertNews($con, $param, $targetFile);
-                    if ($isSuccess) {
-                        $_SESSION['message'] = 'Thêm thành công';
-                        $_SESSION['messageClass'] = 'alert-success';
-                        $_SESSION['iconClass'] = 'fas fa-check';
-
-                        header('Location: manage-news.php');
-                        exit();
-                    }
-
+                    insertNews($con, $param, $targetFile);
                 }
             } else {
                 $error = 1;
             }
 
             if ($mode == 'update') {
-                $isSuccess = updateNews($con, $param);
-                if ($isSuccess) {
-                    $_SESSION['message'] = 'Cập nhật thành công';
-                    $_SESSION['messageClass'] = 'alert-success';
-                    $_SESSION['iconClass'] = 'fas fa-check';
-
-                    header('Location: manage-news.php');
-                    exit();
-                }
+                updateNews($con, $param);
             }
         }
         $message = join('</br>', $mes);
@@ -256,9 +239,6 @@ echo <<<EOF
     <div class="wrapper">
 EOF;
 
-//Preloader
-//include ($TEMP_APP_PRELOADER_PATH);
-
 //Header
 include ($TEMP_APP_HEADER_PATH);
 
@@ -371,6 +351,12 @@ echo <<<EOF
 </html>
 EOF;
 
+/**
+ * Get a news by id
+ * @param $con
+ * @param $param
+ * @return array|false|string[]|null
+ */
 function getNewsById($con, $param){
     $data = [];
     $recCnt = 0;
@@ -395,7 +381,15 @@ function getNewsById($con, $param){
     return $data;
 }
 
-function insertNews($con, $param, $targetFile){
+/**
+ * add news
+ * @param $con
+ * @param $param
+ * @param $targetFile
+ * @return bool
+ */
+function insertNews($con, $param, $targetFile): bool
+{
     $sql = "";
     $sql .= "INSERT INTO News(                          ";
     $sql .= "  title                                    ";
@@ -413,12 +407,24 @@ function insertNews($con, $param, $targetFile){
     $query = mysqli_query($con, $sql);
     if (!$query){
         systemError('systemError(getAllPosition) SQL Error：', $sql.print_r(TRUE));
-        return false;
     }
-    return true;
+
+    $_SESSION['message'] = 'Thêm thành công';
+    $_SESSION['messageClass'] = 'alert-success';
+    $_SESSION['iconClass'] = 'fas fa-check';
+
+    header('Location: manage-news.php');
+    exit();
 }
 
-function updateNews($con, $param){
+/**
+ * update a news by id
+ * @param $con
+ * @param $param
+ * @return bool
+ */
+function updateNews($con, $param): bool
+{
     $sql = "";
     $sql .= "UPDATE News SET                                     ";
     $sql .= "  title = '".$param['title']."'                     ";
@@ -431,14 +437,22 @@ function updateNews($con, $param){
     $query = mysqli_query($con, $sql);
     if (!$query){
         systemError('systemError(getAllPosition) SQL Error：', $sql.print_r(TRUE));
-        return false;
     }
-    return true;
+
+    $_SESSION['message'] = 'Cập nhật thành công';
+    $_SESSION['messageClass'] = 'alert-success';
+    $_SESSION['iconClass'] = 'fas fa-check';
+
+    header('Location: manage-news.php');
+    exit();
 }
 
+/**
+ * delete a news by id
+ * @param $con
+ * @param $param
+ */
 function deleteNews($con, $param){
-    $recCnt = 0;
-
     $sql = "";
     $sql .= "DELETE FROM News WHERE id = ".$param['nid']." ";
 

@@ -88,7 +88,6 @@ if (isset($param['uid']) && !empty($param['uid'])){
     $htmlNote .= <<< EOF
         <small class="form-text" style="color: red">(Mật khẩu cũ vẫn sẽ được giữ nguyên nếu bạn không nhập vào ô này)</small>
 EOF;
-
     $dataAdmin = getAdminById($con, $param);
     $fullName = $param['fullname'] ?? $dataAdmin['fullName'];
     $username = $param['username'] ?? $dataAdmin['username'];
@@ -173,9 +172,6 @@ echo <<<EOF
 <body class="hold-transition sidebar-mini layout-fixed">
     <div class="wrapper">
 EOF;
-
-//Preloader
-//include ($TEMP_APP_PRELOADER_PATH);
 
 //Header
 include ($TEMP_APP_HEADER_PATH);
@@ -400,6 +396,12 @@ function validation($param): array
     return $msg;
 }
 
+/**
+ * get admin by id
+ * @param $con
+ * @param $param
+ * @return array|false|string[]|null
+ */
 function getAdminById($con, $param){
     $data = [];
     $recCnt = 0;
@@ -430,6 +432,11 @@ function getAdminById($con, $param){
     return $data;
 }
 
+/**
+ * update a admin by id
+ * @param $con
+ * @param $param
+ */
 function updateAdmin($con, $param){
     if (!empty($param['birthday'])){
         $birthday = strtotime($param['birthday']);
@@ -475,6 +482,11 @@ function updateAdmin($con, $param){
     exit();
 }
 
+/**
+ * add admin account
+ * @param $con
+ * @param $param
+ */
 function insertAdmin($con, $param){
     if (!empty($param['birthday'])){
         $birthday = strtotime($param['birthday']);
@@ -523,6 +535,12 @@ function insertAdmin($con, $param){
     exit();
 }
 
+/**
+ * show select box position html
+ * @param $con
+ * @param $position
+ * @return string
+ */
 function getSelectPosition($con, $position): string
 {
     $recCnt = 0;
@@ -555,6 +573,12 @@ function getSelectPosition($con, $position): string
     return $html;
 }
 
+/**
+ * show select box role html
+ * @param $con
+ * @param $role
+ * @return string
+ */
 function getSelectRole($con, $role): string
 {
     $recCnt = 0;

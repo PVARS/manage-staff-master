@@ -137,12 +137,12 @@ $(function() {
     });
     
     $(".table").paginate({
-            rows: 5,           // Set number of rows per page. Default: 5
-            position: "top",   // Set position of pager. Default: "bottom"
-            jqueryui: false,   // Allows using jQueryUI theme for pager buttons. Default: false
-            showIfLess: false, // Don't show pager if table has only one page. Default: true
-            numOfPages: 5
-        });
+        rows: 5,           // Set number of rows per page. Default: 5
+        position: "top",   // Set position of pager. Default: "bottom"
+        jqueryui: false,   // Allows using jQueryUI theme for pager buttons. Default: false
+        showIfLess: false, // Don't show pager if table has only one page. Default: true
+        numOfPages: 5
+    });
 });
 </script>
 EOF;
@@ -316,7 +316,14 @@ echo <<<EOF
 </body>
 </html>
 EOF;
-function validation($param){
+
+/**
+ * validation data
+ * @param $param
+ * @return array
+ */
+function validation($param): array
+{
     $mes = [];
     if (!empty($param['fullName']) && mb_strlen($param['fullName']) > 200){
         $mes[] = 'Họ tên phải bé hơn 200 ký tự';
@@ -333,6 +340,7 @@ function validation($param){
 }
 
 /**
+ * show data admin
  * @param $con
  * @param $param
  * @return string
@@ -476,6 +484,7 @@ function lock($con, $param){
     if (!$query){
         systemError('systemError(getAllAdmin) SQL Error：', $sql.print_r(TRUE));
     }
+
     header('Location: manage-admin.php');
 }
 ?>
