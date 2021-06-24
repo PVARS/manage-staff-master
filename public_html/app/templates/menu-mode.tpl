@@ -38,27 +38,12 @@ $menuManageSetting = '';
 if($_SESSION['role'] == 1){
     $menuManageSetting .= <<< EOF
         <li class="nav-item nav-link-new">
-            <a href="javascript:void(0)" class="nav-link">
+            <a href="setting-system.php" class="nav-link">
                 <i class="fas fa-user-cog nav-icon"></i>
                 <p>
                     Cài đặt hệ thống
-                    <i class="fas fa-angle-left right"></i>
                 </p>
             </a>
-            <ul class="nav nav-treeview">
-                <li class="nav-item">
-                    <a href="detail-news.php" class="nav-link nav-link-new-detail">
-                        <i class="fas fa-plus-square nav-icon"></i>
-                        <p>Thêm bài viết</p>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="manage-news.php" class="nav-link nav-link-new-list">
-                        <i class="fas fa-list-ul nav-icon"></i>
-                        <p>Danh sách bài viết</p>
-                    </a>
-                </li>
-            </ul>
         </li>
 EOF;
 }

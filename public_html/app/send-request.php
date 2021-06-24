@@ -39,6 +39,7 @@ if ($isStatus['lockFlg'] == 1){
 $titleEmail = $param['titleEmail'] ?? '';
 $mailTo = $param['mailTo'] ?? '';
 $content = $param['content'] ?? '';
+$dataApps = getApps($con);
 
 if ($param){
     $mes = [];
@@ -58,7 +59,7 @@ if ($param){
     }
 
     if (empty($mes)){
-        $isSend = sendMail($param);
+        $isSend = sendMail($dataApps, $param);
         if ($isSend){
             $_SESSION['message'] = 'Email đã được gửi đến '.$param['mailTo'];
             $_SESSION['messageClass'] = 'alert-success';
@@ -235,11 +236,39 @@ echo <<<EOF
 EOF;
 
 /**
- * setting send email
- * @throws \PHPMailer\PHPMailer\Exception
+ * get apps inf
+ * @param $con
+ * @return array|false|string[]|null
  */
-function sendMail($param): bool
+function getApps($con){
+    $data = [];
+    $recCnt = 0;
+
+    $sql = "SELECT*FROM Apps WHERE appsId = 1";
+
+    $query = mysqli_query($con, $sql);
+    if (!$query){
+        systemError('systemError(getApps) SQL Error：', $sql.print_r(TRUE));
+    } else {
+        $recCnt = mysqli_num_rows($query);
+    }
+
+    if ($recCnt != 0){
+        $data = mysqli_fetch_assoc($query);
+    }
+    return $data;
+}
+
+/**
+ * setting send email
+*/
+function sendMail($dataApps, $param): bool
 {
+    if ($dataApps['smtpAuth'] == 0){
+        $smtpAuth = true;
+    } else {
+        $smtpAuth = false;
+    }
     // SETTING PHPMAIL
     $mail = new PHPMailer();
     $mail->IsHTML(true);
@@ -247,15 +276,15 @@ function sendMail($param): bool
     $mail->addAddress($param['mailTo']);
     $mail->Subject    = $param['titleEmail'];
 
-    $mail->FromName   = 'BAP System';
-    $mail->From       = 'vupv@bap.jp';
-    $mail->Username   = 'vupv@bap.jp';
-    $mail->Password   = 'phanvu2000';
-    $mail->CharSet    = 'utf-8';
-    $mail->Host       = 'ssl://smtp.gmail.com';
-    $mail->SMTPAuth   = true;
-    $mail->SMTPSecure = 'ssl';
-    $mail->Port       = 465;
+    $mail->FromName   = $dataApps['nameEmail'];
+    $mail->From       = $dataApps['mailFrom'];
+    $mail->Username   = $dataApps['mailFrom'];
+    $mail->Password   = $dataApps['password'];
+    $mail->CharSet    = $dataApps['charset'];
+    $mail->Host       = $dataApps['host'];
+    $mail->SMTPAuth   = $smtpAuth;
+    $mail->SMTPSecure = $dataApps['smptSecure'];
+    $mail->Port       = $dataApps['port'];
     $mail->Body       = html_entity_decode($param['content'], ENT_QUOTES, 'UTF-8');
 
     return $mail->send();
