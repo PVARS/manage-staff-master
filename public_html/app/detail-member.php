@@ -20,6 +20,14 @@ $param = getParam();
 
 //Connect DB
 $con = openDB();
+if (!isset($_SESSION['uid']) || empty($_SESSION)){
+    header('location: login.php');
+    exit();
+}
+if ($_SESSION['role'] == 3){
+    header('location: not-found.php');
+    exit();
+}
 $title = 'Tạo tài khoản';
 
 $mode = $param['mode'] ?? 'new';

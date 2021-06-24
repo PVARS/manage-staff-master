@@ -21,6 +21,10 @@ if (!isset($_SESSION['uid']) || empty($_SESSION)){
     header('location: login.php');
     exit();
 }
+if ($_SESSION['role'] == 3){
+    header('location: not-found.php');
+    exit();
+}
 
 if (isset($param['dispFrom'])){
     if ($param['dispFrom'] == 'manage-postion') $hrefBack = 'manage-postion.php';

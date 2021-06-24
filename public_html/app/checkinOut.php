@@ -177,8 +177,7 @@ function showData($con)
 {
     $uid =  $_SESSION['uid'];
     $recCnt = 0;
-    $sql = "SELECT * FROM CheckInOut WHERE uid = ".$uid." ";
-    
+    $sql = "SELECT * FROM CheckInOut WHERE uid = ".$uid." ORDER By DateCheck DESC ";
     $query = mysqli_query($con, $sql);
     if (!$query){
         systemError('systemError(showData) SQL Error：', $sql.print_r(TRUE));
