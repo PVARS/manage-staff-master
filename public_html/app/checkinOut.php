@@ -4,6 +4,12 @@
 require_once ('config.php');
 require_once ('lib.php');
 
+//Initialization
+$func_id = 'check-in-out';
+$message = '';
+$messageClass = '';
+$iconClass = '';
+
 session_start();
 
 $con = openDB();
@@ -14,16 +20,14 @@ if (!isset($_SESSION['uid']) || empty($_SESSION)){
     header('location: login.php');
     exit();
 }
-$status = $param['email'] ?? '';
-if ($param){
-    // if (empty($mes)) $htmlShowData;
 
-    $message = join('<br>', $mes);
-    if (strlen($message)) {
-        $messageClass = 'alert-danger';
-        $iconClass = 'fas fa-ban';
-    }
+$isStatus = checkStatusUser($con);
+if ($isStatus['lockFlg'] == 1){
+    header('Location: error-page.php');
+    exit();
 }
+
+$status = $param['email'] ?? '';
 
 //Message HTML
 if (isset($_SESSION['message']) && strlen($_SESSION['message'])) {

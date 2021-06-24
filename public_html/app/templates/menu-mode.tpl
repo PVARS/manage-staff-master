@@ -30,7 +30,113 @@ if($_SESSION['role'] == 1){
                     </a>
                 </li>
             </ul>
-            </li>
+        </li>
+EOF;
+}
+
+$menuManageSetting = '';
+if($_SESSION['role'] == 1){
+    $menuManageSetting .= <<< EOF
+        <li class="nav-item nav-link-new">
+            <a href="javascript:void(0)" class="nav-link">
+                <i class="fas fa-user-cog nav-icon"></i>
+                <p>
+                    Cài đặt hệ thống
+                    <i class="fas fa-angle-left right"></i>
+                </p>
+            </a>
+            <ul class="nav nav-treeview">
+                <li class="nav-item">
+                    <a href="detail-news.php" class="nav-link nav-link-new-detail">
+                        <i class="fas fa-plus-square nav-icon"></i>
+                        <p>Thêm bài viết</p>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="manage-news.php" class="nav-link nav-link-new-list">
+                        <i class="fas fa-list-ul nav-icon"></i>
+                        <p>Danh sách bài viết</p>
+                    </a>
+                </li>
+            </ul>
+        </li>
+EOF;
+}
+
+
+
+$menuManage = '';
+if($_SESSION['role'] != 3){
+    $menuManage .= <<<EOF
+        <li class="nav-item nav-link-new">
+            <a href="javascript:void(0)" class="nav-link">
+                <i class="fas fa-clipboard-list nav-icon"></i>
+                <p>
+                    Quản lí vị trí
+                    <i class="fas fa-angle-left right"></i>
+                </p>
+            </a>
+            <ul class="nav nav-treeview">
+                <li class="nav-item">
+                    <a href="detail-postion.php" class="nav-link nav-link-new-detail">
+                        <i class="fas fa-plus-square nav-icon"></i>
+                        <p>Thêm vị trí</p>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="manage-postion.php" class="nav-link nav-link-new-list">
+                        <i class="fas fa-list-ul nav-icon"></i>
+                        <p>Danh sách các vị trí</p>
+                    </a>
+                </li>
+            </ul>
+        </li>
+        <li class="nav-item nav-link-new">
+            <a href="javascript:void(0)" class="nav-link">
+                <i class="fas fa-users nav-icon"></i>
+                <p>
+                    Quản lý nhân sự
+                    <i class="fas fa-angle-left right"></i>
+                </p>
+            </a>
+            <ul class="nav nav-treeview">
+                <li class="nav-item">
+                    <a href="detail-member.php" class="nav-link nav-link-new-detail">
+                        <i class="fas fa-plus-square nav-icon"></i>
+                        <p>Thêm nhân sự</p>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="manage-member.php" class="nav-link nav-link-new-list">
+                        <i class="fas fa-list-ul nav-icon"></i>
+                        <p>Danh sách nhân sự</p>
+                    </a>
+                </li>
+            </ul>
+        </li>
+        <li class="nav-item nav-link-new">
+            <a href="javascript:void(0)" class="nav-link">
+                <i class="nav-icon fas fa-newspaper"></i>
+                <p>
+                    Quản lí bài viết
+                    <i class="fas fa-angle-left right"></i>
+                </p>
+            </a>
+            <ul class="nav nav-treeview">
+                <li class="nav-item">
+                    <a href="detail-news.php" class="nav-link nav-link-new-detail">
+                        <i class="fas fa-plus-square nav-icon"></i>
+                        <p>Thêm bài viết</p>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="manage-news.php" class="nav-link nav-link-new-list">
+                        <i class="fas fa-list-ul nav-icon"></i>
+                        <p>Danh sách bài viết</p>
+                    </a>
+                </li>
+            </ul>
+        </li>
 EOF;
 }
 
@@ -73,75 +179,7 @@ print <<<EOF
                 </a>
             </li>
             {$menuManageAdmin}
-            <li class="nav-item nav-link-new">
-                <a href="javascript:void(0)" class="nav-link">
-                    <i class="fas fa-clipboard-list nav-icon"></i>
-                    <p>
-                        Quản lí vị trí
-                        <i class="fas fa-angle-left right"></i>
-                    </p>
-                </a>
-                <ul class="nav nav-treeview">
-                    <li class="nav-item">
-                        <a href="detail-postion.php" class="nav-link nav-link-new-detail">
-                            <i class="fas fa-plus-square nav-icon"></i>
-                            <p>Thêm vị trí</p>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="manage-postion.php" class="nav-link nav-link-new-list">
-                            <i class="fas fa-list-ul nav-icon"></i>
-                            <p>Danh sách các vị trí</p>
-                        </a>
-                    </li>
-                </ul>
-            </li>
-            <li class="nav-item nav-link-new">
-                <a href="javascript:void(0)" class="nav-link">
-                    <i class="fas fa-users nav-icon"></i>
-                    <p>
-                        Quản lý nhân sự
-                        <i class="fas fa-angle-left right"></i>
-                    </p>
-                </a>
-                <ul class="nav nav-treeview">
-                    <li class="nav-item">
-                        <a href="detail-member.php" class="nav-link nav-link-new-detail">
-                            <i class="fas fa-plus-square nav-icon"></i>
-                            <p>Thêm nhân sự</p>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="manage-member.php" class="nav-link nav-link-new-list">
-                            <i class="fas fa-list-ul nav-icon"></i>
-                            <p>Danh sách nhân sự</p>
-                        </a>
-                    </li>
-                </ul>
-            </li>
-            <li class="nav-item nav-link-new">
-                <a href="javascript:void(0)" class="nav-link">
-                    <i class="nav-icon fas fa-newspaper"></i>
-                    <p>
-                        Quản lí bài viết
-                        <i class="fas fa-angle-left right"></i>
-                    </p>
-                </a>
-                <ul class="nav nav-treeview">
-                    <li class="nav-item">
-                        <a href="detail-news.php" class="nav-link nav-link-new-detail">
-                            <i class="fas fa-plus-square nav-icon"></i>
-                            <p>Thêm bài viết</p>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="manage-news.php" class="nav-link nav-link-new-list">
-                            <i class="fas fa-list-ul nav-icon"></i>
-                            <p>Danh sách bài viết</p>
-                        </a>
-                    </li>
-                </ul>
-            </li>
+            {$menuManage}
             <li class="nav-item nav-link-new">
                 <a href="send-request.php" class="nav-link">
                     <i class="fas fa-envelope-open-text nav-icon"></i>
@@ -150,28 +188,7 @@ print <<<EOF
                     </p>
                 </a>
             </li>
-            <li class="nav-item nav-link-new">
-                <a href="javascript:void(0)" class="nav-link">
-                    <i class="fas fa-user-cog nav-icon"></i>
-                    <p>
-                        Cài đặt hệ thống
-                    </p>
-                </a>
-                <ul class="nav nav-treeview">
-                    <li class="nav-item">
-                        <a href="detail-news.php" class="nav-link nav-link-new-detail">
-                            <i class="fas fa-plus-square nav-icon"></i>
-                            <p>Thêm bài viết</p>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="manage-news.php" class="nav-link nav-link-new-list">
-                            <i class="fas fa-list-ul nav-icon"></i>
-                            <p>Danh sách bài viết</p>
-                        </a>
-                    </li>
-                </ul>
-            </li>
+            {$menuManageSetting}
         </ul>
         <a href="logout.php" style="position: absolute; bottom: 0; margin-bottom: 20px">
             <i class="fas fa-sign-out-alt nav-icon" style="font-size: 20px"></i>&nbsp

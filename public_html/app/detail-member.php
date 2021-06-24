@@ -24,12 +24,19 @@ if (!isset($_SESSION['uid']) || empty($_SESSION)){
     header('location: login.php');
     exit();
 }
+
 if ($_SESSION['role'] == 3){
     header('location: not-found.php');
     exit();
 }
-$title = 'Tạo tài khoản';
 
+$isStatus = checkStatusUser($con);
+if ($isStatus['lockFlg'] == 1){
+    header('Location: error-page.php');
+    exit();
+}
+
+$title = 'Tạo tài khoản';
 $mode = $param['mode'] ?? 'new';
 $uid = $param['uid'] ?? '';
 if (isset($param['dispFrom'])){

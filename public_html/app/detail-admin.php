@@ -32,6 +32,12 @@ if ($_SESSION['role'] != 1){
     exit();
 }
 
+$isStatus = checkStatusUser($con);
+if ($isStatus['lockFlg'] == 1){
+    header('Location: error-page.php');
+    exit();
+}
+
 $mode = $param['mode'] ?? 'new';
 $uid = $param['uid'] ?? '';
 

@@ -6,6 +6,13 @@ require_once ('lib.php');
 
 session_start();
 $con = openDB();
+
+$isStatus = checkStatusUser($con);
+if ($isStatus['lockFlg'] == 1){
+    header('Location: error-page.php');
+    exit();
+}
+
 //-----------------------------------------------------------
 // HTML
 //-----------------------------------------------------------

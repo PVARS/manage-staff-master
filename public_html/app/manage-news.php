@@ -51,13 +51,26 @@ if ($param){
         $mes[]= 'Vui lòng nhập tên người đăng không được quá 200 ký tự.';
     }
 
-    if (isset($param['mode']) && $param['mode'] == 'delete'){
-        deleteNews($con, $param);
+    if (!empty($param['dateFrom'])){
+        if (strtotime($param['dateFrom']) == false){
+            $mes[] = 'Vui lòng nhập ngày đến định dạng.';
+        }
+    }
+
+    if (!empty($param['dateTo'])){
+        if (strtotime($param['dateTo']) == false){
+            $mes[] = 'Vui lòng nhập ngày từ định dạng.';
+        }
     }
 
     if (empty($mes)){
         $htmlDataNews;
     }
+
+    if (isset($param['mode']) && $param['mode'] == 'delete'){
+        deleteNews($con, $param);
+    }
+
     $message = join('<br>', $mes);
     if (strlen($message)) {
         $messageClass = 'alert-danger';
@@ -135,12 +148,12 @@ $(function() {
     });
     
     $(".table").paginate({
-            rows: 5,           // Set number of rows per page. Default: 5
-            position: "top",   // Set position of pager. Default: "bottom"
-            jqueryui: false,   // Allows using jQueryUI theme for pager buttons. Default: false
-            showIfLess: false, // Don't show pager if table has only one page. Default: true
-            numOfPages: 5
-        });
+        rows: 5,           // Set number of rows per page. Default: 5
+        position: "top",   // Set position of pager. Default: "bottom"
+        jqueryui: false,   // Allows using jQueryUI theme for pager buttons. Default: false
+        showIfLess: false, // Don't show pager if table has only one page. Default: true
+        numOfPages: 5
+    });
 });
 </script>
 EOF;
@@ -312,12 +325,12 @@ function showDataNews($con, $param){
         $mysql[] = "AND News.content LIKE '%".$param['keyword']."%'                ";
     }
 
-    if (!empty($param['dateForm'])){
-        $mysql[] = "AND News.createDate >= ".strtotime($param['dateForm'])."       ";
+    if (!empty($param['dateFrom'])){
+        $mysql[] = "AND unix_timestamp(DATE(from_unixtime(News.createDate))) >= ".strtotime($param['dateFrom'])."       ";
     }
 
     if (!empty($param['dateTo'])){
-        $mysql[] = "AND News.createDate <= ".strtotime($param['dateTo'])."         ";
+        $mysql[] = "AND unix_timestamp(DATE(from_unixtime(News.createDate))) <= ".strtotime($param['dateTo'])."         ";
     }
 
     $wheresql = join('', $mysql);
@@ -356,6 +369,7 @@ function showDataNews($con, $param){
                    <td style="text-align: center; width: 10%;">
                        <form action="detail-news.php" method="POST">
                             <input type="hidden" name="mode" value="update">
+                            <input type="hidden" name="dispFrom" value="manage-news">
                             <input type="hidden" name="nid" value="{$row['id']}">
                             <button class="btn btn-primary btn-sm editNews"><i class="fas fa-edit"></i></button>
                         </form>

@@ -360,11 +360,11 @@ function showDataAdmin($con, $param): string
     }
 
     if (!empty($param['dateFrom'])){
-        $mysql[] = "AND createDate >= ".$param['dateFrom']."       ";
+        $mysql[] = "AND unix_timestamp(DATE(from_unixtime(News.createDate))) >= ".strtotime($param['dateFrom'])."       ";
     }
 
     if (!empty($param['dateTo'])){
-        $mysql[] = "AND createDate <= ".$param['dateFrom']."       ";
+        $mysql[] = "AND unix_timestamp(DATE(from_unixtime(News.createDate))) <= ".strtotime($param['dateTo'])."         ";
     }
 
     if (!empty($param['status'])){

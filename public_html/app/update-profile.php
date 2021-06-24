@@ -20,13 +20,20 @@ $param = getParam();
 
 //Connect DB
 $con = openDB();
-$title = 'Tạo tài khoản';
 
+$isStatus = checkStatusUser($con);
+if ($isStatus['lockFlg'] == 1){
+    header('Location: error-page.php');
+    exit();
+}
+
+$title = 'Tạo tài khoản';
 $mode = $param['mode'] ?? 'update';
 $uid = $param['uid'] ?? '';
 if (isset($param['dispFrom'])){
     if ($param['dispFrom'] == 'manage-member') $hrefBack = 'manage-member.php';
 }
+
 if ($param){
     if (isset($param['registFlg']) && $param['registFlg'] == 1){
         $mes = validation($param);

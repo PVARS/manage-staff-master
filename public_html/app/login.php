@@ -28,15 +28,20 @@ if ($param){
 
         if (empty($mes)){
             if ($isLogin){
-                if (password_verify($password, $isLogin['password'])){
-                    $_SESSION['uid'] = $isLogin['id'];
-                    $_SESSION['username'] = $isLogin['username'];
-                    $_SESSION['fullName'] = $isLogin['fullName'];
-                    $_SESSION['role'] = $isLogin['role'];
-                    header('Location: manage-admin.php');
+                if ($isLogin['lockFlg'] == 1){
+                    header('Location: error-page.php');
                     exit();
-                } else
-                    $mes[] = 'Tên đăng nhập hoặc mật khẩu không đúng';
+                } else {
+                    if (password_verify($password, $isLogin['password'])){
+                        $_SESSION['uid'] = $isLogin['id'];
+                        $_SESSION['username'] = $isLogin['username'];
+                        $_SESSION['fullName'] = $isLogin['fullName'];
+                        $_SESSION['role'] = $isLogin['role'];
+                        header('Location: home.php');
+                        exit();
+                    } else
+                        $mes[] = 'Tên đăng nhập hoặc mật khẩu không đúng';
+                }
             } else
                 $mes[] = 'Tên đăng nhập hoặc mật khẩu không đúng';
         }
@@ -183,6 +188,7 @@ function login($con, $param, $funcId): ?array
     $sql .= "     , fullName                                ";
     $sql .= "     , password                                ";
     $sql .= "     , role                                    ";
+    $sql .= "     , lockFlg                                 ";
     $sql .= "  FROM User                                    ";
     $sql .= " WHERE username = '".$param['username']."'     ";
     $sql .= "    OR email = '".$param['username']."'        ";

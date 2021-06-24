@@ -12,6 +12,7 @@ $iconClass = '';
 $error = 0;
 $readonly = '';
 $clearSessionJs = 0;
+$hrefBack = 'home.php';
 
 session_start();
 
@@ -26,14 +27,33 @@ if (!isset($_SESSION['uid']) || empty($_SESSION)){
     exit();
 }
 
+if ($_SESSION['role'] == 3){
+    header('location: not-found.php');
+    exit();
+}
+
+$isStatus = checkStatusUser($con);
+if ($isStatus['lockFlg'] == 1){
+    header('Location: error-page.php');
+    exit();
+}
+
 $thumbnail = 'Chọn file';
 $image = $param['image'] ?? '';
 $mode = $param['mode'] ?? 'new';
 $nid = $param['nid'] ?? '';
 
+if (isset($param['dispFrom'])){
+    if ($param['dispFrom'] == 'manage-news') $hrefBack = 'manage-news.php';
+}
+
 if ($param) {
     if (isset($param['registFlg']) && $param['registFlg'] == 1) {
         $mes = [];
+
+        if (isset($param['mode']) && $param['mode'] == 'delete'){
+            deleteNews($con, $param);
+        }
 
         $targetDir = 'uploads';
         if (!file_exists('uploads')) {
@@ -97,12 +117,19 @@ if ($param) {
     }
 }
 
+$htmlDeleteNews = '';
 if (isset($param['nid']) && !empty($param['nid'])){
     $dataNews = getNewsById($con, $param);
     $image = str_replace('uploads/', '', $dataNews['thumbnail']);
     $title = $param['title'] ?? $dataNews['title'];
     $thumbnail = $param['thumbnail'] ?? $image;
-    $content = $param['content'] ?? html_entity_decode($dataNews['content']);
+    $content = $param['content'] ?? $dataNews['content'];
+
+    $htmlDeleteNews .= <<<EOF
+        <a href="javascript:void(0)" class="btn btn-danger" id="btnDelete" title="Xóa bài">
+            <i class="fas fa-trash"></i> Xóa
+        </a>
+EOF;
 } else {
     $title = $param['title'] ?? '';
     $thumbnail = $param['thumbnail'] ?? '';
@@ -153,6 +180,18 @@ $(document).ready(function (){
         });
     });
     
+    $("#btnDelete").on("click", function(e) {
+        e.preventDefault();
+        var message = "Bài viết này sẽ bị xoá. Bạn chắc chứ?";
+        var form = $(this).closest('form');
+        sweetConfirm(1, message, function(result) {
+            if (result){
+                $('.mode').val('delete');
+                form.submit();
+            }
+        });
+    });
+    
     if ('{$mode}' == 'update'){
         $('.thumbnail').text('{$thumbnail}');
         $('.image').val('{$thumbnail}');
@@ -178,11 +217,22 @@ $(document).ready(function (){
     }
     
     $('#saveNews').on('click', function(e) {
+      var mes = [];
       var title = $('.title').val();
       if (!title){
           $('#message').show();
-          return;
-      } else {
+          mes.push('Vui lòng nhập tiêu đề bài viết.'+'</br>');
+      }
+      
+      var valueMess = mes.toString().replace(',', '');
+      if (valueMess){
+          $('.message').remove();
+          $('#showMess').show();
+          $('<span class = "message">'+valueMess+'</span>').appendTo('#message');
+          $("html, body").animate({ scrollTop: 0 }, "slow");
+      }
+      
+      if (mes.length === 0){
           $('#form-edit').submit();
       }
     })
@@ -243,17 +293,22 @@ echo <<<EOF
     <section class="content">
         <div class="container-fluid">
             <div class="row">
+                <div class="col-12">
+                    <a href="{$hrefBack}" class="btn btn-primary float-right mr-3" style="background-color: #17a2b8;" title="Danh sách người dùng">
+                        <i class="fas fa-backward"></i>
+                        &nbspTrở lại
+                    </a>
+                </div>
             </div>
             <div class="row">
                 <div class="card-body">
                     {$messageHtml}
-                    <div class="alert alert-danger alert-dismissible" id="message" style="display: none">
+                    <div class="alert alert-danger alert-dismissible" id="showMess" style="display: none">
                         <div class="row">
                             <div class="icon">
                                 <i class="fas fa-ban"></i>
                             </div>
-                            <div class="col-10">
-                                Vui lòng nhập tiêu đề.
+                            <div class="col-10" id="message">
                             </div>
                         </div>
                     </div>
@@ -286,10 +341,7 @@ echo <<<EOF
                                 <input type="hidden" class="mode" name="mode" value="{$mode}">
                                 <input type="hidden" name="registFlg" value="1">
                                 <input type="hidden" name="nid" value="{$nid}">
-                                <a class="btn btn-default" id="btnClear">
-                                    <i class="fas fa-eraser fa-fw"></i>
-                                    Xoá
-                                </a>
+                                {$htmlDeleteNews}
                                 <button type="button" class="btn btn-primary float-right" id="saveNews" style="background-color: #17a2b8;">
                                     <i class="fas fa-save"></i>
                                     &nbspLưu
@@ -381,5 +433,24 @@ function updateNews($con, $param){
         return false;
     }
     return true;
+}
+
+function deleteNews($con, $param){
+    $recCnt = 0;
+
+    $sql = "";
+    $sql .= "DELETE FROM News WHERE id = ".$param['nid']." ";
+
+    $query = mysqli_query($con, $sql);
+    if (!$query){
+        systemError('systemError(deleteNews) SQL Error：', $sql.print_r(TRUE));
+    }
+
+    $_SESSION['message'] = 'Xoá thành công';
+    $_SESSION['messageClass'] = 'alert-success';
+    $_SESSION['iconClass'] = 'fas fa-check';
+
+    header('Location: manage-news.php');
+    exit();
 }
 ?>
