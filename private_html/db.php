@@ -1,10 +1,10 @@
 <?php
 $dsn = array(
     'host'     => 'localhost',
-    //'port'     => '3306',
-    'user'     => 'root',
+    'port'     => '3306',
+    'user'     => 'admin',
     'dbname'   => 'bap_db',
-    'password' => ''
+    'password' => 'Sonbin@123'
 );
 ?>
 

@@ -22,10 +22,6 @@ if (!isset($_SESSION['uid']) || empty($_SESSION)){
     header('location: login.php');
     exit();
 }
-if ($_SESSION['role'] == 3){
-    header('location: not-found.php');
-    exit();
-}
 
 $isStatus = checkStatusUser($con);
 if ($isStatus['lockFlg'] == 1){
@@ -38,8 +34,6 @@ $username = $param['username'] ?? '';
 $numberPhone = $param['numberPhone'] ?? '';
 $email = $param['email'] ?? '';
 $status = $param['status'] ?? '';
-$dateFrom = $param['dateFrom'] ?? '';
-$dateTo = $param['dateTo'] ?? '';
 $selected = '';
 if (!empty($status)) $selected = 'selected';
 
@@ -51,17 +45,7 @@ if ($param){
 
     if (empty($mes)) $htmlDataMember;
     if (isset($param['uid'])) lock($con, $param);
-    if (!empty($param['dateFrom'])){
-        if (strtotime($param['dateFrom']) == false){
-            $mes[] = 'Vui lòng nhập ngày đến định dạng.';
-        }
-    }
 
-    if (!empty($param['dateTo'])){
-        if (strtotime($param['dateTo']) == false){
-            $mes[] = 'Vui lòng nhập ngày từ định dạng.';
-        }
-    }
     $message = join('<br>', $mes);
     if (strlen($message)) {
         $messageClass = 'alert-danger';
@@ -101,9 +85,6 @@ $cssHTML = '';
 $scriptHTML = <<< EOF
 <script>
 $(function() {
-    $("#datepickerTo").datepicker({
-        dateFormat: 'dd-mm-yy'
-    });
     $("#btnClear").on("click", function(e) {
         e.preventDefault();
         var message = "Đặt màn hình tìm kiếm về trạng thái ban đầu?";
@@ -120,6 +101,17 @@ $(function() {
         var message = "Chuyển đến màn hình chỉnh sửa. Bạn chắc chứ?";
         var form = $(this).closest("form");
         sweetConfirm(3, message, function(result) {
+            if (result){
+                form.submit();
+            }
+        });
+    });
+
+    $(".checkIn").on("click", function(e) {
+        e.preventDefault();
+        var message = "Chuyển đến màn hình thông tin điểm danh. Bạn chắc chứ?";
+        var form = $(this).closest("form");
+        sweetConfirm(7, message, function(result) {
             if (result){
                 form.submit();
             }
@@ -266,14 +258,14 @@ echo <<<EOF
                                                 <div class="input-group-prepend">
                                                     <span class="input-group-text"><i class="fas fa-calendar-alt"></i></span>
                                                 </div>
-                                                <input type="text" id="datepicker" placeholder="10-05-2021" name="dateFrom" class="form-control" value="{$dateFrom}" autocomplete="off">
+                                                <input type="date" name="dateFrom" class="form-control" value="">
                                             </div>
                                             <span><b>~</b></span>
                                             <div class="input-group mb-6 col-3">
                                                 <div class="input-group-prepend">
                                                     <span class="input-group-text"><i class="fas fa-calendar-alt"></i></span>
                                                 </div>
-                                                <input type="text" id="datepickerTo" placeholder="10-05-2021" name="dateTo" class="form-control" value="{$dateTo}" autocomplete="off">
+                                                <input type="date" name="dateTo" class="form-control" value="">
                                             </div>
                                         </div>
                                     </div>
@@ -304,7 +296,7 @@ echo <<<EOF
                                         <th style="text-align: center; width: 20%;" class="text-th">Họ tên</th>
                                         <th style="text-align: center; width: 20%;" class="text-th">Tên đăng nhập</th>
                                         <th style="text-align: center; width: 20%;" class="text-th">Số điện thoại</th>
-                                        <th colspan="2" class="text-center" style="width: 15px"></th>
+                                        <th colspan="3" class="text-center" style="width: 15px"></th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -374,11 +366,11 @@ function showDataMember($con, $param): string
     }
 
     if (!empty($param['dateFrom'])){
-        $mysql[] = "AND unix_timestamp(DATE(from_unixtime(User.createDate))) >= ".strtotime($param['dateFrom'])."       ";
+        $mysql[] = "AND createDate >= ".$param['dateFrom']."       ";
     }
 
     if (!empty($param['dateTo'])){
-        $mysql[] = "AND unix_timestamp(DATE(from_unixtime(User.createDate))) <= ".strtotime($param['dateTo'])."         ";
+        $mysql[] = "AND createDate <= ".$param['dateFrom']."       ";
     }
 
     if (!empty($param['status'])){
@@ -398,8 +390,8 @@ function showDataMember($con, $param): string
     $sql .= "     , birthday                   ";
     $sql .= "     , lockFlg                    ";
     $sql .= "  FROM User                       ";
-    $sql .= "WHERE createDate IS NOT NULL      ";
-    $sql .= "AND role = 3                      ";
+    $sql .= "  WHERE createDate IS NOT NULL    ";
+    $sql .= "  AND role = 3                    ";
     $sql .= $wheresql;
     $sql .= " ORDER BY lockFlg ASC             ";
     $sql .= "     , createDate DESC            ";
@@ -445,6 +437,12 @@ EOF;
                     <td style="width: 20%;">{$row['fullName']}</td>
                     <td style="width: 20%;">{$row['username']}</td>
                     <td style="text-align: center; width: 20%;">{$row['phone']}</td>
+                    <td style="text-align: center; width: 5%;">
+                        <form action="checkinOut.php" method="POST">
+                            <input type="hidden" name="uidCheckin" value="{$row['id']}">
+                            <button class="btn btn-primary btn-sm checkIn"><i class="fas fa-eye"></i></button>
+                        </form>
+                    </td>
                     <td style="text-align: center; width: 5%;">
                         <form action="detail-member.php" method="POST">
                             <input type="hidden" name="uid" value="{$row['id']}">

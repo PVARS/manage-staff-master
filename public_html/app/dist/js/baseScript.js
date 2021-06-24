@@ -31,6 +31,12 @@ function sweetConfirm(type,message,callback) {
             title = 'THÔNG BÁO';
             break;
         }
+        
+        case 7 : {
+            title = 'XEM';
+            break;
+        }
+
         default : {
             break;
         }

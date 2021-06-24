@@ -100,7 +100,16 @@ $(function() {
             }
         });
     });
-    
+    $(".checkIn").on("click", function(e) {
+        e.preventDefault();
+        var message = "Chuyển đến màn hình thông tin điểm danh. Bạn chắc chứ?";
+        var form = $(this).closest("form");
+        sweetConfirm(7, message, function(result) {
+            if (result){
+                form.submit();
+            }
+        });
+    });
     $(".editUser").on("click", function(e) {
         e.preventDefault();
         var message = "Chuyển đến màn hình chỉnh sửa. Bạn chắc chứ?";
@@ -290,7 +299,7 @@ echo <<<EOF
                                         <th style="text-align: center; width: 20%;" class="text-th">Họ tên</th>
                                         <th style="text-align: center; width: 20%;" class="text-th">Tên đăng nhập</th>
                                         <th style="text-align: center; width: 20%;" class="text-th">Số điện thoại</th>
-                                        <th colspan="2" class="text-center" style="width: 15px"></th>
+                                        <th colspan="3" class="text-center" style="width: 15px"></th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -438,6 +447,12 @@ EOF;
                     <td style="width: 20%;">{$row['fullName']}</td>
                     <td style="width: 20%;">{$row['username']}</td>
                     <td style="text-align: center; width: 20%;">{$row['phone']}</td>
+                    <td style="text-align: center; width: 5%;">
+                        <form action="checkinOut.php" method="POST">
+                            <input type="hidden" name="uidCheckin" value="{$row['id']}">
+                            <button class="btn btn-primary btn-sm checkIn"><i class="fas fa-eye"></i></button>
+                        </form>
+                    </td>
                     <td style="text-align: center; width: 5%;">
                         <form action="detail-admin.php" method="POST">
                             <input type="hidden" name="uid" value="{$row['id']}">
