@@ -55,6 +55,10 @@ print <<< EOF
         $("#datepicker").datepicker({
             dateFormat: 'dd-mm-yy'
         });
+
+        $(".nav-link-new-detail").on('click', function (){
+            sessionStorage.removeItem('fileName');
+        });
     })
 </script>
 {$scriptHTML}
