@@ -75,6 +75,7 @@ if ($param) {
             }
 
             if ($_FILES['thumbnail']['size'] > 26214400) {
+                $allowUpload = false;
                 $mes[] = 'Ảnh không được quá 25MB.';
             }
         }
