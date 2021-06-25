@@ -17,7 +17,18 @@ if ($isStatus['lockFlg'] == 1){
 // HTML
 //-----------------------------------------------------------
 $titleHTML = '';
-$cssHTML = '';
+$cssHTML = <<<EOF
+<style>
+.text-limited{
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    font-weight: bold;
+}
+</style>
+EOF;
 $scriptHTML = '';
 $htmlNew = "";
 $htmlNew = showNew($con);
@@ -85,7 +96,7 @@ function showNew($con)
     if($recCnt != 0){
         while($row = mysqli_fetch_assoc($query)){
             $stt++;
-            $date = date('d-m-Y',$row['createDate']);
+            $date = date('d/m/Y',$row['createDate']);
             $content = html_entity_decode($row['content']);
 
             if(empty($row['thumbnail'])){
@@ -94,37 +105,18 @@ function showNew($con)
                 $image = $row['thumbnail'];
 
             }
+            
+            $baseUrl = 'http://'.$_SERVER['HTTP_HOST'].'/manage-staff-master/public_html/app/news.php?nid='.$row['id'];
+
             $html.= <<< EOF
                 <div class="col-md-4">
                     <div class="col-md-11" style="margin-left:5%">
                         <div class="card">
                             <img class="card-img-top" src="{$image}" alt="Card image cap" style="height: 300px;">
                             <div class="card-body">
-                                <a type="button" class="" data-toggle="modal" data-target="#myModal{$stt}"><h2>{$row['title']}</h2></a> </br>
+                                <a href="{$baseUrl}"><h2 class="text-limited">{$row['title']}</h2></a>
                                 <span>{$row['fullName']} - {$date}</span> <br>
                             </div>
-                        </div>
-                    </div>
-                    <!-- Modal -->
-                    <div class="modal fade" id="myModal{$stt}" role="dialog">
-                        <div class="modal-dialog">
-                        <!-- Modal content-->
-                        <div class="modal-content">
-                            <div class="modal-header text-center">
-                                <h4 class="modal-title w-100">{$row['title']}</h4>
-                            </div>
-                            <div class="modal-body">
-                                <img class="card-img-top" src="{$image}">
-                                <p style="margin-top:5px">{$content}.</p>
-                            </div>
-                            <div class="modal-body">
-                                <span style="float:right;">{$row['fullName']} - {$date}</span> <br>
-                            </div>
-                            <div class="modal-footer">
-                                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                            </div>
-                        </div>
-                        
                         </div>
                     </div>
                 </div>
