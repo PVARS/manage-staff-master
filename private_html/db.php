@@ -2,9 +2,9 @@
 $dsn = array(
     'host'     => 'localhost',
     'port'     => '3306',
-    'user'     => 'admin',
+    'user'     => 'root',
     'dbname'   => 'bap_db',
-    'password' => 'Sonbin@123'
+    'password' => '123456'
 );
 ?>
 
