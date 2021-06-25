@@ -439,6 +439,7 @@ EOF;
                     <td style="text-align: center; width: 20%;">{$row['phone']}</td>
                     <td style="text-align: center; width: 5%;">
                         <form action="checkinOut.php" method="POST">
+                            <input type="hidden" name="fullName" value="{$row['fullName']}">
                             <input type="hidden" name="uidCheckin" value="{$row['id']}">
                             <button class="btn btn-primary btn-sm checkIn"><i class="fas fa-eye"></i></button>
                         </form>
