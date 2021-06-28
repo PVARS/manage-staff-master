@@ -1,6 +1,4 @@
 <?php
-// Get Css hover
-$navs          = getCssOfMenu('mode') ?? array();
 $navLinkActive = $navs['navLinkActive'] ?? '';
 $navLinkOnlick = $navs['navLinkOnlick'] ?? 'info';
 $name = $_SESSION['fullName'] ?? '';
